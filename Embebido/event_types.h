@@ -3,7 +3,10 @@
 #define MAX_EVENTS 32
 #define MAX_TYPE_EVENTS 7
 #define MAX_PRESENCE_SENSORS 3
+#define MAX_DAYS 7
+#define MAX_PERIODS (MAX_PRESENCE_SENSORS * MAX_DAYS)
 #define PRECENSE_THRESHOLD 100 // Valor de umbral para detectar la presencia de pastillas
+
 enum events
 {
  EV_TIME_MONDAY_MORNING,
@@ -82,6 +85,11 @@ bool button_3_sensor();
 bool limit_switch_moving_sensor();
 bool limit_switch_start_sensor();
 bool presence_sensor();
+
+//----------------------------------------------
+// The setDayAndPeriod function calculates and sets the objectiveDay and objectivePeriod based on the value of new_event. If new_event exceeds the MAX_PERIODS threshold, it resets both values to -1; otherwise, it determines the day and period using division and modulo operations with MAX_PRESENCE_SENSORS.
+void setDayAndPeriod();
+
 typedef bool (*eventType)();
 eventType event_type[MAX_TYPE_EVENTS] = {time_sensor, button_1_sensor, button_2_sensor, button_3_sensor, limit_switch_moving_sensor, limit_switch_start_sensor, presence_sensor};
 
@@ -128,4 +136,16 @@ bool presence_sensor()
  short value = readPresenceSensor(presenceSensorsArray[objetivePeriod]);
  new_event = (value > PRECENSE_THRESHOLD) ? EV_PILL_DETECTED : EV_PILL_NOT_DETECTED;
  return true;
+}
+
+void setDayAndPeriod()
+{
+ if (new_event >= MAX_PERIODS)
+ {
+  objectiveDay = -1;
+  objectivePeriod = -1;
+  return;
+ }
+ objectiveDay = new_event / MAX_PRESENCE_SENSORS;
+ objectivePeriod = new_event % MAX_PRESENCE_SENSORS;
 }

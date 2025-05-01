@@ -131,6 +131,9 @@ void state_machine()
   {
    DebugPrintEstado(states_s[current_state], events_s[new_event]);
   }
+
+  setDayAndPeriod();
+
   state_table_actions[current_state][new_event]();
   current_state = state_table_next_state[current_state][new_event];
  }
