@@ -1,6 +1,9 @@
-#define MAX_EVENTS 30
-#define MAX_TYPE_EVENTS 6
+#include "fisical.h"
 
+#define MAX_EVENTS 32
+#define MAX_TYPE_EVENTS 7
+#define MAX_PRESENCE_SENSORS 3
+#define PRECENSE_THRESHOLD 100 // Valor de umbral para detectar la presencia de pastillas
 enum events
 {
  EV_TIME_MONDAY_MORNING,
@@ -32,6 +35,8 @@ enum events
  EV_BUTTON_3_LONG_PRESS,
  EV_LIMIT_SWITCH_MOVING,
  EV_LIMIT_SWITCH_START,
+ EV_PILL_DETECTED,
+ EV_PILL_NOT_DETECTED,
  EV_CONT,
 } new_event;
 
@@ -64,7 +69,11 @@ String events_s[] = {
     "EV_BUTTON_2_LONG_PRESS",
     "EV_BUTTON_3_LONG_PRESS",
     "EV_LIMIT_SWITCH_MOVING",
-    "EV_LIMIT_SWITCH_START"};
+    "EV_LIMIT_SWITCH_START",
+    "EV_PILL_DETECTED",
+    "EV_PILL_NOT_DETECTED",
+    "EV_CONT",
+};
 
 bool time_sensor();
 bool button_1_sensor();
@@ -72,8 +81,14 @@ bool button_2_sensor();
 bool button_3_sensor();
 bool limit_switch_moving_sensor();
 bool limit_switch_start_sensor();
+bool presence_sensor();
 typedef bool (*eventType)();
-eventType event_type[MAX_TYPE_EVENTS] = {time_sensor, button_1_sensor, button_2_sensor, button_3_sensor, limit_switch_moving_sensor, limit_switch_start_sensor};
+eventType event_type[MAX_TYPE_EVENTS] = {time_sensor, button_1_sensor, button_2_sensor, button_3_sensor, limit_switch_moving_sensor, limit_switch_start_sensor, presence_sensor};
+
+short objetiveDay = -1;
+short objetivePeriod = -1;
+
+const short presenceSensorsArray[MAX_PRESENCE_SENSORS] = {PRESENCE_PIN_1, PRESENCE_PIN_2, PRESENCE_PIN_3};
 
 bool time_sensor()
 {
@@ -104,4 +119,13 @@ bool limit_switch_start_sensor()
 {
  // TODO: Implementar la función para detectar el interruptor de límite de inicio
  return false;
+}
+bool presence_sensor()
+{
+ if (objetivePeriod == -1) // Si no hay un ciclo de recordatorio activo, no se detecta la presencia de pastillas
+  return false;
+
+ short value = readPresenceSensor(presenceSensorsArray[objetivePeriod]);
+ new_event = (value > PRECENSE_THRESHOLD) ? EV_PILL_DETECTED : EV_PILL_NOT_DETECTED;
+ return true;
 }

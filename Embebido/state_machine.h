@@ -1,3 +1,30 @@
+// Enable debug states prints
+//----------------------------------------------
+#define SERIAL_DEBUG_ENABLED 1
+
+#if SERIAL_DEBUG_ENABLED
+#define DebugPrint(str) \
+ {                      \
+  Serial.println(str);  \
+ }
+#else
+#define DebugPrint(str)
+#endif
+
+#define DebugPrintEstado(estado, evento)                         \
+ {                                                               \
+  String est = estado;                                           \
+  String evt = evento;                                           \
+  String str;                                                    \
+  str = "-----------------------------------------------------"; \
+  DebugPrint(str);                                               \
+  str = "EST-> [" + est + "]: " + "EVT-> [" + evt + "].";        \
+  DebugPrint(str);                                               \
+  str = "-----------------------------------------------------"; \
+  DebugPrint(str);                                               \
+ }
+//----------------------------------------------
+
 #include "event_types.h"
 
 #define MAX_STATES 6
@@ -56,9 +83,6 @@ String states_s[] = {
     "ST_REMINDER_CYCLE_ON_HOLD",
     "ST_REMINDER_CYCLE_COMPLETED"};
 
-enum states last_state;
-enum events last_event;
-
 transition state_table_actions[MAX_STATES][MAX_EVENTS] =
     {
         {},
@@ -103,11 +127,15 @@ void state_machine()
 
  if ((new_event >= 0) && (new_event < MAX_EVENTS) && (current_state >= 0) && (current_state < MAX_STATES))
  {
-
+  if (new_event != EV_CONT)
+  {
+   DebugPrintEstado(states_s[current_state], events_s[new_event]);
+  }
   state_table_actions[current_state][new_event]();
   current_state = state_table_next_state[current_state][new_event];
-
-  last_event = new_event;
-  last_state = current_state;
+ }
+ else
+ {
+  DebugPrint("Error: Estado o evento fuera de rango." + String(current_state) + " " + String(new_event));
  }
 }
