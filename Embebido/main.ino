@@ -3,14 +3,18 @@
 
 #include "fisical.h"
 #include "state_machine.h"
+#include "timer_schedule.h"
 
 #define HOUR_UPDATE_INTERVAL 10000 // 10 seconds
 const char* ssid     = "Wokwi-GUEST";
 const char* password = "";
 
 const char* ntpServer = "pool.ntp.org";
-const long  gmtOffset_sec = -3 * 3600;
+const long  gmtOffset_sec = -4 * 3600;
 const int   daylightOffset_sec = 3600;
+
+TimerHandle_t xTimer = NULL;
+TaskHandle_t eventTaskHandle = NULL;
 
 
 /*
@@ -27,15 +31,7 @@ const int   daylightOffset_sec = 3600;
   tm_isdst	int	Daylight Saving Time flag
 */
 
-tm shchedule[MAX_PERIODS] = {
-  {0, 0, 6, 0, 0, 0, 0, 0}, //Domingo, 6:00am
-  {0, 0, 6, 0, 0, 0, 1, 0}, //Lunes, 6:00am
-  {0, 0, 6, 0, 0, 0, 2, 0}, //Martes, 6:00am
-  {0, 0, 6, 0, 0, 0, 3, 0}, //Miercoles, 6:00am
-  {0, 0, 6, 0, 0, 0, 4, 0}, //Jueves, 6:00am
-  {0, 0, 6, 0, 0, 0, 5, 0}, //Viernes 6:00am
-  {0, 0, 6, 0, 0, 0, 6, 0} //Sabado 7:00pm
-};
+
 struct tm timeinfo;
 void setupWifi() {
   Serial.println("Connecting to WiFi...");
@@ -53,6 +49,7 @@ void setupTime() {
     Serial.println("Failed to obtain time");
     delay(1000);
   }
+  Serial.println("Time succesfully setted");
 }
 void printLocalTime() {
   Serial.print("Current time: ");
@@ -62,20 +59,49 @@ void printLocalTime() {
   Serial.print(":");
   Serial.println(timeinfo.tm_sec);
 }
-void updateHourT(void* param) {
-  while (1)
-  {
-    getLocalTime(&timeinfo, 5);
-    printLocalTime();
-    vTaskDelay(HOUR_UPDATE_INTERVAL);
+
+void createNewScheduledTimer() {
+  Serial.println("1");
+  getLocalTime(&timeinfo, 5); // Update RTC time
+  Serial.println("2");
+  searchNextSchedule(&timeinfo); // Set nextPeriod to the next schedule based on the current time
+
+  Serial.println("3");
+  Serial.println(nextPeriod);
+  const int timeUntilNextScheduleValue = timeUntilNextSchedule(&timeinfo, &schedule[nextPeriod]); // Calculate time until next schedule
+  Serial.println("3.5");
+  Serial.println(timeUntilNextScheduleValue);
+  xTimer = xTimerCreate("ScheduleTime", pdMS_TO_TICKS(timeUntilNextScheduleValue), pdFALSE, NULL, handleTimerCallback);
+  Serial.println("4");
+  if (xTimer != NULL) {
+    xTimerStart(xTimer, 0);
+    Serial.println("5");
+  } else {
+    Serial.println("Failed to create timer.");
   }
+}
+
+void handleTimerCallback(TimerHandle_t xTimer) {
+ xTaskNotifyGive(eventTaskHandle);
+ xTimerDelete(xTimer, 0);
+ createNewScheduledTimer();
+}
+void testTimer(void* param){
+ const int schedulePos = *(int*)param;
+ while(1){
+  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+  Serial.println("Timer triggered!");
+  new_event = (events)schedulePos;
+ }
 }
 void setup() {
   Serial.begin(9600);
   fisicalSetup();
   setupWifi();
   setupTime();
-  xTaskCreate(updateHourT, "updateHour", 1024, NULL, 1, NULL);
+  // xTaskCreate(updateHourT, "updateHour", 1024, NULL, 1, NULL);
+  createNewScheduledTimer();
+  xTaskCreate(testTimer, "testTimer", 2048, &nextPeriod, 1, &eventTaskHandle);
 }
 
 void loop() {
