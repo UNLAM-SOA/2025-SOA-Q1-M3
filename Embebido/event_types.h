@@ -1,3 +1,4 @@
+#pragma once
 #include "fisical.h"
 
 #define MAX_EVENTS 32
@@ -6,9 +7,12 @@
 #define MAX_DAYS 7
 #define MAX_PERIODS (MAX_PRESENCE_SENSORS * MAX_DAYS)
 #define PRECENSE_THRESHOLD 100 // Valor de umbral para detectar la presencia de pastillas
-
+#define NO_PILL_TOOKING -1
 enum events
 {
+ EV_TIME_SUNDAY_MORNING,
+ EV_TIME_SUNDAY_AFTERNOON,
+ EV_TIME_SUNDAY_NIGHT,
  EV_TIME_MONDAY_MORNING,
  EV_TIME_MONDAY_AFTERNOON,
  EV_TIME_MONDAY_NIGHT,
@@ -27,9 +31,6 @@ enum events
  EV_TIME_SATURDAY_MORNING,
  EV_TIME_SATURDAY_AFTERNOON,
  EV_TIME_SATURDAY_NIGHT,
- EV_TIME_SUNDAY_MORNING,
- EV_TIME_SUNDAY_AFTERNOON,
- EV_TIME_SUNDAY_NIGHT,
  EV_BUTTON_1_TAP,
  EV_BUTTON_2_TAP,
  EV_BUTTON_3_TAP,
@@ -41,9 +42,12 @@ enum events
  EV_PILL_DETECTED,
  EV_PILL_NOT_DETECTED,
  EV_CONT,
-} new_event;
+} new_event = EV_CONT;
 
 String events_s[] = {
+    "EV_TIME_SUNDAY_MORNING",
+    "EV_TIME_SUNDAY_AFTERNOON",
+    "EV_TIME_SUNDAY_NIGHT",
     "EV_TIME_MONDAY_MORNING",
     "EV_TIME_MONDAY_AFTERNOON",
     "EV_TIME_MONDAY_NIGHT",
@@ -62,9 +66,6 @@ String events_s[] = {
     "EV_TIME_SATURDAY_MORNING",
     "EV_TIME_SATURDAY_AFTERNOON",
     "EV_TIME_SATURDAY_NIGHT",
-    "EV_TIME_SUNDAY_MORNING",
-    "EV_TIME_SUNDAY_AFTERNOON",
-    "EV_TIME_SUNDAY_NIGHT",
     "EV_BUTTON_1_TAP",
     "EV_BUTTON_2_TAP",
     "EV_BUTTON_3_TAP",
@@ -93,14 +94,16 @@ void setDayAndPeriod();
 typedef bool (*eventType)();
 eventType event_type[MAX_TYPE_EVENTS] = {time_sensor, button_1_sensor, button_2_sensor, button_3_sensor, limit_switch_moving_sensor, limit_switch_start_sensor, presence_sensor};
 
-short objetiveDay = -1;
-short objetivePeriod = -1;
+short objetiveDay = NO_PILL_TOOKING;
+short objetivePeriod = NO_PILL_TOOKING;
 
 const short presenceSensorsArray[MAX_PRESENCE_SENSORS] = {PRESENCE_PIN_1, PRESENCE_PIN_2, PRESENCE_PIN_3};
 
 bool time_sensor()
 {
  // TODO: Implementar la función para detectar el tiempo
+ if (new_event <= MAX_PERIODS)
+  return true;
  return false;
 }
 bool button_1_sensor()
@@ -130,7 +133,7 @@ bool limit_switch_start_sensor()
 }
 bool presence_sensor()
 {
- if (objetivePeriod == -1) // Si no hay un ciclo de recordatorio activo, no se detecta la presencia de pastillas
+ if (objetivePeriod == NO_PILL_TOOKING) // Si no hay un ciclo de recordatorio activo, no se detecta la presencia de pastillas
   return false;
 
  short value = readPresenceSensor(presenceSensorsArray[objetivePeriod]);
@@ -142,8 +145,6 @@ void setDayAndPeriod()
 {
  if (new_event >= MAX_PERIODS)
  {
-  objetiveDay = -1;
-  objetivePeriod = -1;
   return;
  }
  objetiveDay = new_event / MAX_PRESENCE_SENSORS;
