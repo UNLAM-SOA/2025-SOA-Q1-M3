@@ -1,33 +1,7 @@
-// Enable debug states prints
-//----------------------------------------------
-#define SERIAL_DEBUG_ENABLED 1
-
-#if SERIAL_DEBUG_ENABLED
-#define DebugPrint(str) \
- {                      \
-  Serial.println(str);  \
- }
-#else
-#define DebugPrint(str)
-#endif
-
-#define DebugPrintEstado(estado, evento)                         \
- {                                                               \
-  String est = estado;                                           \
-  String evt = evento;                                           \
-  String str;                                                    \
-  str = "-----------------------------------------------------"; \
-  DebugPrint(str);                                               \
-  str = "EST-> [" + est + "]: " + "EVT-> [" + evt + "].";        \
-  DebugPrint(str);                                               \
-  str = "-----------------------------------------------------"; \
-  DebugPrint(str);                                               \
- }
-//----------------------------------------------
-
+#include "debug.h"
 #include "event_types.h"
 #include "state_machine_actions.h"
-#define MAX_STATES 14
+#define MAX_STATES 15
 #define TIME_DIFF_BETWEEN_EXEC_CYCLES 50 // 50 milisegundos
 
 short last_index_type_sensor = 0;
@@ -73,6 +47,7 @@ String states_s[MAX_STATES] = {
 };
 
 action state_table_action[MAX_STATES][MAX_EVENTS] = {
+    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_DUMMY*/
     {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_INIT*/
     {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_NO_SCHEDULE_SET*/
     {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_SETTING_SCHEDULE*/
@@ -134,17 +109,16 @@ void get_new_event()
 void state_machine()
 {
  get_new_event();
-
  if ((new_event >= 0) && (new_event < MAX_EVENTS) && (current_state >= 0) && (current_state < MAX_STATES))
  {
-  if (new_event != EV_CONT)
-  {
-   DebugPrintEstado(states_s[current_state], events_s[new_event]);
-  }
+  // if (new_event != EV_CONT)
+  // {
+  DebugPrintEstado(states_s[current_state], events_s[new_event]);
+  // }
 
   setDayAndPeriod();
 
-  state_table_actions[current_state][new_event]();
+  state_table_action[current_state][new_event]();
   current_state = state_table_next_state[current_state][new_event];
  }
  else

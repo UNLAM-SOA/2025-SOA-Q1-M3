@@ -12,3 +12,10 @@ void doseSkipped();
 void returnToHome();
 void error();
 void none();
+
+void error()
+{
+}
+void none()
+{
+}

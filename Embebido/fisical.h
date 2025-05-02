@@ -1,6 +1,8 @@
+#pragma once // Avoid multiple redefinitions of the same file
 // This file encapsulates the physical layer of the system, including the buttons, presence sensors, limit switches, and buzzer.
 //  It provides functions to read the state of these components and to write to the buzzer.
-#include <Wire.h> // Librería para comunicación I2C
+// #include <Wire.h> // Librería para comunicación I2C
+#include "debug.h"
 // Variables y valores
 #define BUTTON_1 2
 #define BUTTON_2 3
@@ -30,6 +32,20 @@
 #define LCD_COLUMNS 16   // Número de columnas del LCD
 #define LCD_ROWS 2       // Número de filas del LCD
 
+short readPotentiometer();
+short readPresenceSensor(int pin);
+short readLimitSwitch(int pin);
+short readButton(int pin);
+short writeBuzzer(short value);
+void writeLCD(const char *message);
+void writeLCD(const char *message);
+void setupLCD();
+void clearLCD();
+void startMotorLeft();
+void startMotorRight();
+void stopMotor();
+void fisicalSetup();
+
 short readPotentiometer()
 {
  int value = analogRead(POTENTIOMETER_PIN); // Lee el valor del potenciómetro
@@ -39,7 +55,7 @@ short readPresenceSensor(int pin)
 {
  if (pin != PRESENCE_PIN_1 && pin != PRESENCE_PIN_2 && pin != PRESENCE_PIN_3)
  {
-  Serial.println("Error: Pin no válido para el sensor de presencia.");
+  DebugPrint("Error: Pin no válido para el sensor de presencia.");
   return -1; // Retorna un valor de error si el pin no es válido
  }
  int value = digitalRead(pin); // Lee el valor del sensor de presencia
@@ -49,7 +65,7 @@ short readLimitSwitch(int pin)
 {
  if (pin != LIMIT_SWITCH_1 && pin != LIMIT_SWITCH_2)
  {
-  Serial.println("Error: Pin no válido para el fin de carrera.");
+  DebugPrint("Error: Pin no válido para el fin de carrera.");
   return -1; // Retorna un valor de error si el pin no es válido
  }
  int value = digitalRead(pin); // Lee el valor del fin de carrera
@@ -59,7 +75,7 @@ short readButton(int pin)
 {
  if (pin != BUTTON_1 && pin != BUTTON_2 && pin != BUTTON_3)
  {
-  Serial.println("Error: Pin no válido para el botón.");
+  DebugPrint("Error: Pin no válido para el botón.");
   return -1; // Retorna un valor de error si el pin no es válido
  }
  int value = digitalRead(pin); // Lee el valor del botón
@@ -69,7 +85,7 @@ short writeBuzzer(short value)
 {
  if (value != 0 && value != 1)
  {
-  Serial.println("Error: Valor no válido para el zumbador.");
+  DebugPrint("Error: Valor no válido para el zumbador.");
   return -1; // Retorna un valor de error si el valor no es válido
  }
  digitalWrite(BUZZER_PIN, value); // Escribe el valor en el zumbador
@@ -78,22 +94,22 @@ short writeBuzzer(short value)
 
 void writeLCD(const char *message)
 {
- Wire.beginTransmission(LCD_ADDRESS); // Inicia la transmisión I2C
- Wire.write(message);                 // Envía el mensaje al LCD
- Wire.endTransmission();              // Finaliza la transmisión
+ // Wire.beginTransmission(LCD_ADDRESS); // Inicia la transmisión I2C
+ // Wire.write(message);                 // Envía el mensaje al LCD
+ // Wire.endTransmission();              // Finaliza la transmisión
 }
 void setupLCD()
 {
- Wire.begin(LCD_SDA_PIN, LCD_SCL_PIN); // Inicia la comunicación I2C con el LCD
- Wire.beginTransmission(LCD_ADDRESS);  // Inicia la transmisión I2C
- Wire.write(0x00);                     // Envía un comando al LCD (ajustar según el modelo)
- Wire.endTransmission();               // Finaliza la transmisión
+ // Wire.begin(LCD_SDA_PIN, LCD_SCL_PIN); // Inicia la comunicación I2C con el LCD
+ // Wire.beginTransmission(LCD_ADDRESS);  // Inicia la transmisión I2C
+ // Wire.write(0x00);                     // Envía un comando al LCD (ajustar según el modelo)
+ // Wire.endTransmission();               // Finaliza la transmisión
 }
 void clearLCD()
 {
- Wire.beginTransmission(LCD_ADDRESS); // Inicia la transmisión I2C
- Wire.write(0x01);                    // Envía un comando para limpiar el LCD
- Wire.endTransmission();              // Finaliza la transmisión
+ // Wire.beginTransmission(LCD_ADDRESS); // Inicia la transmisión I2C
+ // Wire.write(0x01);                    // Envía un comando para limpiar el LCD
+ // Wire.endTransmission();              // Finaliza la transmisión
 }
 void startMotorLeft()
 {
@@ -106,4 +122,23 @@ void startMotorRight()
 void stopMotor()
 {
  // TODO: Implementar la función para detener el motor
+}
+
+void fisicalSetup()
+{
+ pinMode(BUTTON_1, INPUT_PULLUP); // Configura el botón 1 como entrada con resistencia pull-up
+ pinMode(BUTTON_2, INPUT_PULLUP); // Configura el botón 2 como entrada con resistencia pull-up
+ pinMode(BUTTON_3, INPUT_PULLUP); // Configura el botón 3 como entrada con resistencia pull-up
+
+ pinMode(PRESENCE_PIN_1, INPUT); // Configura el sensor de presencia 1 como entrada
+ pinMode(PRESENCE_PIN_2, INPUT); // Configura el sensor de presencia 2 como entrada
+ pinMode(PRESENCE_PIN_3, INPUT); // Configura el sensor de presencia 3 como entrada
+
+ pinMode(LIMIT_SWITCH_1, INPUT_PULLUP); // Configura el fin de carrera 1 como entrada con resistencia pull-up
+ pinMode(LIMIT_SWITCH_2, INPUT_PULLUP); // Configura el fin de carrera 2 como entrada con resistencia pull-up
+
+ pinMode(BUZZER_PIN, OUTPUT);       // Configura el zumbador como salida
+ pinMode(POTENTIOMETER_PIN, INPUT); // Configura el potenciómetro como entrada
+
+ setupLCD(); // Inicializa la pantalla LCD
 }

@@ -142,10 +142,10 @@ void setDayAndPeriod()
 {
  if (new_event >= MAX_PERIODS)
  {
-  objectiveDay = -1;
-  objectivePeriod = -1;
+  objetiveDay = -1;
+  objetivePeriod = -1;
   return;
  }
- objectiveDay = new_event / MAX_PRESENCE_SENSORS;
- objectivePeriod = new_event % MAX_PRESENCE_SENSORS;
+ objetiveDay = new_event / MAX_PRESENCE_SENSORS;
+ objetivePeriod = new_event % MAX_PRESENCE_SENSORS;
 }
