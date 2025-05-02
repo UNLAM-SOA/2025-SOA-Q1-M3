@@ -19,8 +19,8 @@
 // TODO: Agregar pines necesarios para el girarMotor
 
 // Fines de carrera
-#define LIMIT_SWITCH_1 8
-#define LIMIT_SWITCH_2 9
+#define LIMIT_SWITCH_MOVIL 8
+#define LIMIT_SWITCH_START 9
 
 #define BUZZER_PIN 13
 #define POTENTIOMETER_PIN 14
@@ -63,7 +63,7 @@ short readPresenceSensor(int pin)
 }
 short readLimitSwitch(int pin)
 {
- if (pin != LIMIT_SWITCH_1 && pin != LIMIT_SWITCH_2)
+ if (pin != LIMIT_SWITCH_MOVIL && pin != LIMIT_SWITCH_START)
  {
   DebugPrint("Error: Pin no válido para el fin de carrera.");
   return -1; // Retorna un valor de error si el pin no es válido
@@ -134,8 +134,8 @@ void fisicalSetup()
  pinMode(PRESENCE_PIN_2, INPUT); // Configura el sensor de presencia 2 como entrada
  pinMode(PRESENCE_PIN_3, INPUT); // Configura el sensor de presencia 3 como entrada
 
- pinMode(LIMIT_SWITCH_1, INPUT_PULLUP); // Configura el fin de carrera 1 como entrada con resistencia pull-up
- pinMode(LIMIT_SWITCH_2, INPUT_PULLUP); // Configura el fin de carrera 2 como entrada con resistencia pull-up
+ pinMode(LIMIT_SWITCH_MOVIL, INPUT_PULLUP); // Configura el fin de carrera 1 como entrada con resistencia pull-up
+ pinMode(LIMIT_SWITCH_START, INPUT_PULLUP); // Configura el fin de carrera 2 como entrada con resistencia pull-up
 
  pinMode(BUZZER_PIN, OUTPUT);       // Configura el zumbador como salida
  pinMode(POTENTIOMETER_PIN, INPUT); // Configura el potenciómetro como entrada

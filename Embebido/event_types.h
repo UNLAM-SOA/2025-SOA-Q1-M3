@@ -98,6 +98,7 @@ short objetiveDay = NO_PILL_TOOKING;
 short objetivePeriod = NO_PILL_TOOKING;
 
 const short presenceSensorsArray[MAX_PRESENCE_SENSORS] = {PRESENCE_PIN_1, PRESENCE_PIN_2, PRESENCE_PIN_3};
+short limitSwitchPassed = 0; // How many limit switches have been passed
 
 bool time_sensor()
 {
@@ -123,11 +124,25 @@ bool button_3_sensor()
 }
 bool limit_switch_moving_sensor()
 {
+ if (objetiveDay == NO_PILL_TOOKING) // Si no hay un ciclo de recordatorio activo, no se detecta el interruptor de límite en movimiento
+  return false;
+
+ if (limitSwitchPassed == objetiveDay) // Si el número de interruptores de límite pasados es igual al día objetivo, se ha alcanzado el final del recorrido
+ {
+  limitSwitchPassed = 0;              // Reiniciar el contador de interruptores de límite pasados
+  new_event = EV_LIMIT_SWITCH_MOVING; // Establecer el evento de interruptor de límite en movimiento
+  return true;                        // Se ha alcanzado el final del recorrido
+ }
  // TODO: Implementar la función para detectar el interruptor de límite en movimiento
  return false;
 }
 bool limit_switch_start_sensor()
 {
+ if (readLimitSwitch(LIMIT_SWITCH_START) == HIGH) // Si el interruptor de límite de inicio está activado
+ {
+  new_event = EV_LIMIT_SWITCH_START; // Establecer el evento de interruptor de límite de inicio
+  return true;                       // Se ha alcanzado el interruptor de límite de inicio
+ }
  // TODO: Implementar la función para detectar el interruptor de límite de inicio
  return false;
 }
