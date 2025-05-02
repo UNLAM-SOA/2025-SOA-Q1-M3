@@ -94,12 +94,15 @@ void testTimer(void* param){
   new_event = (events)schedulePos;
  }
 }
+void detectMovingLimitSwitch(void){
+ limitSwitchPassed++;
+}
 void setup() {
   Serial.begin(9600);
   fisicalSetup();
+  attachInterrupt(LIMIT_SWITCH_MOVIL, detectMovingLimitSwitch,RISING);
   setupWifi();
   setupTime();
-  // xTaskCreate(updateHourT, "updateHour", 1024, NULL, 1, NULL);
   createNewScheduledTimer();
   xTaskCreate(testTimer, "testTimer", 2048, &nextPeriod, 1, &eventTaskHandle);
 }
