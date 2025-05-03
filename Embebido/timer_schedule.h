@@ -32,7 +32,8 @@ tm schedule[MAX_PERIODS] = {
     // Sábado
     {0, 0, 6, 0, 0, 0, 6, 0},
     {0, 16, 10, 0, 0, 0, 6, 0},
-    {0, 35, 11, 0, 0, 0, 6, -1}};
+    {0, 35, 11, 0, 0, 0, 6, -1}
+};
 
 bool isScheduleAvailable(tm *scheduleRecord)
 {

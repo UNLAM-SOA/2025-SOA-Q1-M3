@@ -45,7 +45,7 @@ enum events
  EV_CONT,
 } new_event = EV_CONT;
 
-String events_s[] = {
+String events_s[] = { // Los primeros 21 eventos corresponden a los generados al alcanzar cierto dia y horario
     "EV_TIME_SUNDAY_MORNING",
     "EV_TIME_SUNDAY_AFTERNOON",
     "EV_TIME_SUNDAY_NIGHT",
