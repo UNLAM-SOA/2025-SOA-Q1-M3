@@ -1,3 +1,4 @@
+#pragma once
 #include "time.h"
 #include "event_types.h"
 void searchNextSchedule(tm *timeinfo);
@@ -32,13 +33,21 @@ tm schedule[MAX_PERIODS] = {
     // Sábado
     {0, 0, 6, 0, 0, 0, 6, 0},
     {0, 16, 10, 0, 0, 0, 6, 0},
-    {0, 35, 11, 0, 0, 0, 6, -1}
-};
+    {0, 35, 11, 0, 0, 0, 6, -1}};
 
 bool isScheduleAvailable(tm *scheduleRecord)
 {
  return scheduleRecord->tm_yday != -1;
 }
+void setScheduleUnnavailable(tm *schedulePos)
+{
+ schedule->tm_yday = -1; // Set the schedule as unavailable
+}
+void setScheduleAvailable(tm *schedulePos)
+{
+ schedule->tm_yday = 0; // Set the schedule as available
+}
+
 int firstScheduleAvailable()
 {
  for (int i = 0; i < MAX_PERIODS; i++)

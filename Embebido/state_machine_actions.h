@@ -1,12 +1,9 @@
+#pragma once
 #include "timer_schedule.h"
 #include <WiFi.h>
-#include "time.h"
-
+#include <string.h>
 #include "fisical.h"
-#include "state_machine.h"
-#include "timer_schedule.h"
 
-#define HOUR_UPDATE_INTERVAL 10000 // 10 seconds
 const char *ssid = "Wokwi-GUEST";
 const char *password = "";
 
@@ -15,8 +12,9 @@ const long gmtOffset_sec = -4 * 3600;
 const int daylightOffset_sec = 3600;
 
 TimerHandle_t xTimer = NULL;
-TaskHandle_t eventTaskHandle = NULL;
 
+void handleTimerCallback(TimerHandle_t xTimer);
+void createNewScheduledTimer();
 /*
   ---struct tm---
   Member	Type	Meaning	Range
@@ -67,6 +65,17 @@ void printLocalTime()
  Serial.println(timeinfo.tm_sec);
 }
 
+void handleTimerCallback(TimerHandle_t xTimer)
+{
+ if (xTimer != NULL)
+ {
+  xQueueSend(timeEventsQueue, &nextPeriod, 0);
+  xTimerDelete(xTimer, 0);
+  xTimer = NULL; // limpiar handle
+  createNewScheduledTimer();
+ }
+}
+
 void createNewScheduledTimer()
 {
 
@@ -89,49 +98,29 @@ void createNewScheduledTimer()
  }
 }
 
-void handleTimerCallback(TimerHandle_t xTimer)
-{
- xTaskNotifyGive(eventTaskHandle);
- xTimerDelete(xTimer, 0);
- createNewScheduledTimer();
-}
-
-void testTimer(void *param)
-{
- int schedulePos;
- while (1)
- {
-  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-  schedulePos = *(int *)param;
-  Serial.println("Timer triggered!");
-  xQueueSend(timeEventsQueue, &schedulePos, 0); // Send the event to the queue
- }
-}
-
 void detectMovingLimitSwitch(void)
 {
  limitSwitchPassed++;
 }
 
-
 typedef void (*action)();
 
 // Actions
-void initialize() 
+void initialize()
 {
-    // Lee archivo con horarios y dias
-    // Calcula el proximo horario y dia
-    // Pasa al estado awaiting reminder time
-    Serial.begin(9600);
-    fisicalSetup();
-    attachInterrupt(LIMIT_SWITCH_MOVIL, detectMovingLimitSwitch, RISING);
-    setupWifi();
-    setupTime();
-    createNewScheduledTimer();
-    xTaskCreate(testTimer, "testTimer", 2048, &nextPeriod, 1, &eventTaskHandle);
-    timeEventsQueue = xQueueCreate(MAX_EVENTS_QUEUE, sizeof(events));
 
+ // Lee archivo con horarios y dias
+ // Calcula el proximo horario y dia
+ // Pasa al estado awaiting reminder time
+
+ fisicalSetup();
+ attachInterrupt(LIMIT_SWITCH_MOVIL, detectMovingLimitSwitch, RISING);
+ setupWifi();
+ setupTime();
+ createNewScheduledTimer();
+ timeEventsQueue = xQueueCreate(MAX_EVENTS_QUEUE, sizeof(events));
 }
+
 void noScheduleSet();
 void settingSchedule();
 void awaitingTimer();
