@@ -6,9 +6,9 @@ int timeUntilNextSchedule(tm *timeinfo, tm *schedule);
 int nextPeriod = -1;
 tm schedule[MAX_PERIODS] = {
     // Domingo
-    {0, 0, 6, 0, 0, 0, 0, 0},  // Mañana
-    {0, 0, 14, 0, 0, 0, 0, 0}, // Tarde
-    {0, 0, 21, 0, 0, 0, 0, 0}, // Noche
+    {0, 0, 6, 0, 0, 0, 0, -1},  // Mañana //-1 At the end means it is not available
+    {0, 0, 14, 0, 0, 0, 0, -1}, // Tarde
+    {0, 0, 21, 0, 0, 0, 0, 0},  // Noche
     // Lunes
     {0, 0, 6, 0, 0, 0, 1, 0},
     {0, 0, 14, 0, 0, 0, 1, 0},
@@ -31,24 +31,40 @@ tm schedule[MAX_PERIODS] = {
     {0, 0, 21, 0, 0, 0, 5, 0},
     // Sábado
     {0, 0, 6, 0, 0, 0, 6, 0},
-    {0, 0, 14, 0, 0, 0, 6, 0},
-    {0, 0, 21, 0, 0, 0, 6, 0}};
+    {0, 16, 10, 0, 0, 0, 6, 0},
+    {0, 35, 11, 0, 0, 0, 6, -1}};
 
+bool isScheduleAvailable(tm *scheduleRecord)
+{
+ return scheduleRecord->tm_yday != -1;
+}
+int firstScheduleAvailable()
+{
+ for (int i = 0; i < MAX_PERIODS; i++)
+ {
+  if (isScheduleAvailable(&schedule[i]))
+   return i;
+ }
+ return -1;
+}
 void searchNextSchedule(tm *timeinfo)
 {
+
  int currentWeekDay = timeinfo->tm_wday; // Día actual de la semana (0-6, donde 0 es domingo)
  int currentHour = timeinfo->tm_hour;    // Hora actual (0-23)
  int currentMinute = timeinfo->tm_min;   // Minuto actual (0-59)
 
  for (int i = 0; i < MAX_PERIODS; i++)
  {
-  if (schedule[i].tm_wday >= currentWeekDay && (schedule[i].tm_hour > currentHour || (schedule[i].tm_hour == currentHour && schedule[i].tm_min > currentMinute)))
+  if (isScheduleAvailable(&schedule[i]) && schedule[i].tm_wday >= currentWeekDay && (schedule[i].tm_hour > currentHour || (schedule[i].tm_hour == currentHour && schedule[i].tm_min > currentMinute)))
   {
    nextPeriod = i;
    return;
   }
  }
- nextPeriod = -1; // No hay más horarios programados para hoy
+ nextPeriod = firstScheduleAvailable();
+ Serial.print("nextPeriod: ");
+ Serial.println(nextPeriod);
 }
 
 int timeUntilNextSchedule(tm *timeinfo, tm *schedule)

@@ -8,6 +8,7 @@
 #define MAX_PERIODS (MAX_PRESENCE_SENSORS * MAX_DAYS)
 #define PRECENSE_THRESHOLD 100 // Valor de umbral para detectar la presencia de pastillas
 #define NO_PILL_TOOKING -1
+#define MAX_EVENTS_QUEUE 1
 enum events
 {
  EV_TIME_SUNDAY_MORNING,
@@ -94,6 +95,7 @@ void setDayAndPeriod();
 typedef bool (*eventType)();
 eventType event_type[MAX_TYPE_EVENTS] = {time_sensor, button_1_sensor, button_2_sensor, button_3_sensor, limit_switch_moving_sensor, limit_switch_start_sensor, presence_sensor};
 
+QueueHandle_t timeEventsQueue = NULL;
 short objetiveDay = NO_PILL_TOOKING;
 short objetivePeriod = NO_PILL_TOOKING;
 
@@ -102,9 +104,12 @@ short limitSwitchPassed = 0; // How many limit switches have been passed
 
 bool time_sensor()
 {
- // TODO: Implementar la función para detectar el tiempo
- if (new_event <= MAX_PERIODS)
+ int queueValue;
+ if (xQueueReceive(timeEventsQueue, &queueValue, 0) == pdTRUE) // If there is a value in the queue
+ {
+  new_event = (events)queueValue;
   return true;
+ }
  return false;
 }
 bool button_1_sensor()
