@@ -1,7 +1,7 @@
 #include "debug.h"
 #include "event_types.h"
 #include "state_machine_actions.h"
-#define MAX_STATES 16
+#define MAX_STATES 15
 #define TIME_DIFF_BETWEEN_EXEC_CYCLES 50 // 50 milisegundos
 
 short last_index_type_sensor = 0;
@@ -11,7 +11,6 @@ void (*funcReset)(void) = 0;
 
 enum states
 {
- ST_DUMMY,
  ST_INIT,
  ST_NO_SCHEDULE_SET,
  ST_SETTING_SCHEDULE,
@@ -27,10 +26,9 @@ enum states
  ST_REMINDER_CYCLE_CANCELLED,
  ST_REMINDER_CYCLE_ON_HOLD,
  ST_REMINDER_CYCLE_COMPLETED
-} current_state;
+} current_state = ST_INIT;
 
 String states_s[MAX_STATES] = {
-    "ST_DUMMY",
     "ST_INIT",
     "ST_NO_SCHEDULE_SET",
     "ST_SETTING_SCHEDULE",
@@ -49,27 +47,25 @@ String states_s[MAX_STATES] = {
 };
 
 action state_table_action[MAX_STATES][MAX_EVENTS] = {
-    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_DUMMY*/
-    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_INIT*/
-    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_NO_SCHEDULE_SET*/
-    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_SETTING_SCHEDULE*/
-    {none, error, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none}, /*ST_AWAITING_REMINDER_TIME*/
-    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_MOVING_TO_PILL_POS*/
-    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_STOP_MOVING*/
-    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_SCANNING_AT_PILL_POS*/
-    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_PILLS_DETECTED*/
-    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_NO_PILLS_DETECTED*/
-    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_DOSE_TAKEN*/
-    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_DOSE_SKIPPED*/
-    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_RETURNING_TO_NEUTRAL*/
-    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_REMINDER_CYCLE_CANCELLED*/
-    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_REMINDER_CYCLE_ON_HOLD*/
-    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none}   /*ST_REMINDER_CYCLE_COMPLETED*/
+    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, initialize}, /*ST_INIT*/
+    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},       /*ST_NO_SCHEDULE_SET*/
+    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},       /*ST_SETTING_SCHEDULE*/
+    {none, error, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},      /*ST_AWAITING_REMINDER_TIME*/
+    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},       /*ST_MOVING_TO_PILL_POS*/
+    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},       /*ST_STOP_MOVING*/
+    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},       /*ST_SCANNING_AT_PILL_POS*/
+    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},       /*ST_PILLS_DETECTED*/
+    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},       /*ST_NO_PILLS_DETECTED*/
+    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},       /*ST_DOSE_TAKEN*/
+    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},       /*ST_DOSE_SKIPPED*/
+    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},       /*ST_RETURNING_TO_NEUTRAL*/
+    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},       /*ST_REMINDER_CYCLE_CANCELLED*/
+    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},       /*ST_REMINDER_CYCLE_ON_HOLD*/
+    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none}        /*ST_REMINDER_CYCLE_COMPLETED*/
 };
 
 states state_table_next_state[MAX_STATES][MAX_EVENTS] = {
-    {ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY, ST_DUMMY},                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              /*ST_DUMMY*/
-    {ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_NO_SCHEDULE_SET},                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   /*ST_INIT*/
+    {ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_AWAITING_REMINDER_TIME},                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            /*ST_INIT*/
     {ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_SETTING_SCHEDULE, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET, ST_NO_SCHEDULE_SET},                                                                                                                                                                                                                                                                                             /*ST_NO_SCHEDULE_SET*/
     {ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_AWAITING_REMINDER_TIME, ST_NO_SCHEDULE_SET, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE, ST_SETTING_SCHEDULE},                                                                                                                                                                                                                                                         /*ST_SETTING_SCHEDULE*/
     {ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_REMINDER_CYCLE_ON_HOLD, ST_AWAITING_REMINDER_TIME, ST_AWAITING_REMINDER_TIME, ST_REMINDER_CYCLE_CANCELLED, ST_AWAITING_REMINDER_TIME, ST_AWAITING_REMINDER_TIME, ST_AWAITING_REMINDER_TIME, ST_AWAITING_REMINDER_TIME, ST_AWAITING_REMINDER_TIME, ST_AWAITING_REMINDER_TIME, ST_AWAITING_REMINDER_TIME},                                                                                                                                                /*ST_AWAITING_REMINDER_TIME*/
@@ -101,7 +97,6 @@ void get_new_event()
   index = (last_index_type_sensor % MAX_TYPE_EVENTS);
 
   last_index_type_sensor++;
-
   if (event_type[index]())
   {
    return;
@@ -119,7 +114,6 @@ void state_machine()
   // {
   DebugPrintEstado(states_s[current_state], events_s[new_event]);
   // }
-
   setDayAndPeriod();
 
   state_table_action[current_state][new_event]();

@@ -46,6 +46,7 @@ enum events
 } new_event = EV_CONT;
 
 String events_s[] = {
+    // Los primeros 21 eventos corresponden a los generados al alcanzar cierto dia y horario
     "EV_TIME_SUNDAY_MORNING",
     "EV_TIME_SUNDAY_AFTERNOON",
     "EV_TIME_SUNDAY_NIGHT",
@@ -105,7 +106,7 @@ short limitSwitchPassed = 0; // How many limit switches have been passed
 bool time_sensor()
 {
  int queueValue;
- if (xQueueReceive(timeEventsQueue, &queueValue, 0) == pdTRUE) // If there is a value in the queue
+ if (timeEventsQueue != NULL && xQueueReceive(timeEventsQueue, &queueValue, 0) == pdTRUE) // If there is a value in the queue
  {
   new_event = (events)queueValue;
   return true;
