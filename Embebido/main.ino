@@ -2,7 +2,8 @@
 
 void setup()
 {
-  Serial.begin(9600);
+ current_state = ST_INIT;
+
 }
 
 void loop()
