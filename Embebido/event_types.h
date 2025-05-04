@@ -1,5 +1,6 @@
 #pragma once
 #include "fisical.h"
+#include "freeRTOS_Objects.h"
 
 #define MAX_EVENTS 32
 #define MAX_TYPE_EVENTS 7
@@ -8,7 +9,7 @@
 #define MAX_PERIODS (MAX_PILLS_PER_DAY * MAX_DAYS)
 #define PRECENSE_THRESHOLD 100 // Valor de umbral para detectar la presencia de pastillas
 #define NO_PILL_TOOKING -1
-#define MAX_EVENTS_QUEUE 1
+
 enum events
 {
  EV_TIME_SUNDAY_MORNING,
@@ -96,7 +97,6 @@ void setDayAndPeriod();
 typedef bool (*eventType)();
 eventType event_type[MAX_TYPE_EVENTS] = {time_sensor, button_1_sensor, button_2_sensor, button_3_sensor, limit_switch_moving_sensor, limit_switch_start_sensor, presence_sensor};
 
-QueueHandle_t timeEventsQueue = NULL;
 short objetiveDay = NO_PILL_TOOKING;
 short objetivePeriod = NO_PILL_TOOKING;
 
@@ -134,8 +134,7 @@ bool limit_switch_moving_sensor()
 {
  if (objetiveDay == NO_PILL_TOOKING) // Si no hay un ciclo de recordatorio activo, no se detecta el interruptor de límite en movimiento
   return false;
-
- if (limitSwitchPassed == objetiveDay) // Si el número de interruptores de límite pasados es igual al día objetivo, se ha alcanzado el final del recorrido
+ if (limitSwitchPassed == objetiveDay + 1) // Si el número de interruptores de límite pasados es igual al día objetivo, se ha alcanzado el final del recorrido
  {
   limitSwitchPassed = -limitSwitchPassed; // Reiniciar el contador de interruptores de límite pasados
   new_event = EV_LIMIT_SWITCH_MOVING;     // Establecer el evento de interruptor de límite en movimiento

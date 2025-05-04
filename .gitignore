@@ -30,3 +30,5 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+/Embebido/~$State_machine_generator.xlsm

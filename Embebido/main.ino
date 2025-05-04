@@ -2,8 +2,8 @@
 
 void setup()
 {
- Serial.begin(9600)
- initialize()
+ Serial.begin(9600);
+  initialize();
 }
 
 void loop()
