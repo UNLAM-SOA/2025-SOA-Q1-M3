@@ -5,7 +5,7 @@
 #define MAX_TYPE_EVENTS 7
 #define MAX_DAYS 7
 #define MAX_PILLS_PER_DAY 3
-#define MAX_PERIODS (MAX_PRESENCE_SENSORS * MAX_DAYS)
+#define MAX_PERIODS (MAX_PILLS_PER_DAY * MAX_DAYS)
 #define PRECENSE_THRESHOLD 100 // Valor de umbral para detectar la presencia de pastillas
 #define NO_PILL_TOOKING -1
 #define MAX_EVENTS_QUEUE 1
@@ -137,16 +137,16 @@ bool limit_switch_moving_sensor()
 
  if (limitSwitchPassed == objetiveDay) // Si el número de interruptores de límite pasados es igual al día objetivo, se ha alcanzado el final del recorrido
  {
-  limitSwitchPassed = -limitSwitchPassed;              // Reiniciar el contador de interruptores de límite pasados
-  new_event = EV_LIMIT_SWITCH_MOVING; // Establecer el evento de interruptor de límite en movimiento
-  return true;                        // Se ha alcanzado el final del recorrido
- } 
+  limitSwitchPassed = -limitSwitchPassed; // Reiniciar el contador de interruptores de límite pasados
+  new_event = EV_LIMIT_SWITCH_MOVING;     // Establecer el evento de interruptor de límite en movimiento
+  return true;                            // Se ha alcanzado el final del recorrido
+ }
 
  // Alcanza el principio
- if(limitSwitchPassed == 0 && !movingForward)
+ if (limitSwitchPassed == 0 && !movingForward)
  {
-    new_event = EV_LIMIT_SWITCH_START;
-    return true;
+  new_event = EV_LIMIT_SWITCH_START;
+  return true;
  }
  // TODO: Implementar la función para detectar el interruptor de límite en movimiento
  return false;
