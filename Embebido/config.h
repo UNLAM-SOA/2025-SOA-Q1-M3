@@ -8,7 +8,9 @@
 void setDefaultConfig();
 void saveScheduleToSD();
 void readCsvConfig();
+
 String readSD(const char *);
+
 void printSchedule();
 void printCSVSchedule();
 
@@ -166,4 +168,5 @@ void printCSVSchedule()
  file.close();
  Serial.println("--------------------------");
  Serial.println("Fin del archivo\n");
+
 }

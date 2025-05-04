@@ -5,35 +5,7 @@ void searchNextSchedule(tm *timeinfo);
 int timeUntilNextSchedule(tm *timeinfo, tm *schedule);
 
 int nextPeriod = -1;
-tm schedule[MAX_PERIODS] = {
-    // Domingo
-    {0, 0, 6, 0, 0, 0, 0, -1},  // Mañana //-1 At the end means it is not available
-    {0, 0, 14, 0, 0, 0, 0, -1}, // Tarde
-    {0, 0, 21, 0, 0, 0, 0, 0},  // Noche
-    // Lunes
-    {0, 0, 6, 0, 0, 0, 1, 0},
-    {0, 0, 14, 0, 0, 0, 1, 0},
-    {0, 0, 21, 0, 0, 0, 1, 0},
-    // Martes
-    {0, 0, 6, 0, 0, 0, 2, 0},
-    {0, 0, 14, 0, 0, 0, 2, 0},
-    {0, 0, 21, 0, 0, 0, 2, 0},
-    // Miércoles
-    {0, 0, 6, 0, 0, 0, 3, 0},
-    {0, 0, 14, 0, 0, 0, 3, 0},
-    {0, 0, 21, 0, 0, 0, 3, 0},
-    // Jueves
-    {0, 0, 6, 0, 0, 0, 4, 0},
-    {0, 0, 14, 0, 0, 0, 4, 0},
-    {0, 0, 21, 0, 0, 0, 4, 0},
-    // Viernes
-    {0, 0, 6, 0, 0, 0, 5, 0},
-    {0, 3, 19, 0, 0, 0, 5, 0},
-    {0, 0, 21, 0, 0, 0, 5, 0},
-    // Sábado
-    {0, 0, 6, 0, 0, 0, 6, 0},
-    {0, 16, 10, 0, 0, 0, 6, 0},
-    {0, 35, 11, 0, 0, 0, 6, -1}};
+tm schedule[MAX_PERIODS]; 
 
 bool isScheduleAvailable(tm *scheduleRecord)
 {
@@ -98,4 +70,25 @@ int timeUntilNextSchedule(tm *timeinfo, tm *schedule)
   millisecondsUntilNextSchedule += 24 * 3600000; // Agregar un día en milisegundos si el horario programado ya pasó
  }
  return millisecondsUntilNextSchedule;
+}
+
+void setupSchedule(int[][] scheduleSetup) 
+{
+ for(int i=0; i<MAX_DAYS; i++){
+  for(int j=0; j<MAX_PILLS_PER_DAY; j++){
+    if(scheduleSetup[i][j] != 0)
+    {
+      schedule[i+j] = (struct tm) {
+        .tm_hour = scheduleSetup[i][j];
+        .tm_wday = i;
+        .tm_isdst = 0;
+      };
+    } else 
+    {
+      schedule[i+j] = (struct tm) {
+        .tm_isdst = -1;
+      };
+    }
+  }
+ }
 }
