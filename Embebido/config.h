@@ -4,7 +4,6 @@
 
 #define PATH_SCHEDULE "/schedule.csv"
 
-
 // Declaraciones anticipadas
 void setDefaultConfig();
 void saveScheduleToSD();

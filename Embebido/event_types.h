@@ -5,6 +5,7 @@
 #define MAX_TYPE_EVENTS 7
 #define MAX_PRESENCE_SENSORS 3
 #define MAX_DAYS 7
+#define MAX_PILLS_PER_DAY 3
 #define MAX_PERIODS (MAX_PRESENCE_SENSORS * MAX_DAYS)
 #define PRECENSE_THRESHOLD 100 // Valor de umbral para detectar la presencia de pastillas
 #define NO_PILL_TOOKING -1
@@ -100,6 +101,8 @@ QueueHandle_t timeEventsQueue = NULL;
 short objetiveDay = NO_PILL_TOOKING;
 short objetivePeriod = NO_PILL_TOOKING;
 
+bool movingForward = true; // It starts moving forward
+
 const short presenceSensorsArray[MAX_PRESENCE_SENSORS] = {PRESENCE_PIN_1, PRESENCE_PIN_2, PRESENCE_PIN_3};
 short limitSwitchPassed = 0; // How many limit switches have been passed
 
@@ -135,23 +138,21 @@ bool limit_switch_moving_sensor()
 
  if (limitSwitchPassed == objetiveDay) // Si el número de interruptores de límite pasados es igual al día objetivo, se ha alcanzado el final del recorrido
  {
-  limitSwitchPassed = 0;              // Reiniciar el contador de interruptores de límite pasados
+  limitSwitchPassed = -limitSwitchPassed;              // Reiniciar el contador de interruptores de límite pasados
   new_event = EV_LIMIT_SWITCH_MOVING; // Establecer el evento de interruptor de límite en movimiento
   return true;                        // Se ha alcanzado el final del recorrido
+ } 
+
+ // Alcanza el principio
+ if(limitSwitchPassed == 0 && !movingForward)
+ {
+    new_event = EV_LIMIT_SWITCH_START;
+    return true;
  }
  // TODO: Implementar la función para detectar el interruptor de límite en movimiento
  return false;
 }
-bool limit_switch_start_sensor()
-{
- if (readLimitSwitch(LIMIT_SWITCH_START) == HIGH) // Si el interruptor de límite de inicio está activado
- {
-  new_event = EV_LIMIT_SWITCH_START; // Establecer el evento de interruptor de límite de inicio
-  return true;                       // Se ha alcanzado el interruptor de límite de inicio
- }
- // TODO: Implementar la función para detectar el interruptor de límite de inicio
- return false;
-}
+
 bool presence_sensor()
 {
  if (objetivePeriod == NO_PILL_TOOKING) // Si no hay un ciclo de recordatorio activo, no se detecta la presencia de pastillas

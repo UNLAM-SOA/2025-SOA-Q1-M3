@@ -28,6 +28,10 @@
 #define LCD_SDA_PIN 15
 #define LCD_SCL_PIN 16
 
+#define IN1_PIN_PUENTE_H 4
+#define IN2_PIN_PUENTE_H 2
+#define EN_PIN_PUENTE_H 15
+
 #define LCD_ADDRESS 0x27 // Dirección I2C del LCD (ajustar según el modelo)
 #define LCD_COLUMNS 16   // Número de columnas del LCD
 #define LCD_ROWS 2       // Número de filas del LCD
@@ -113,15 +117,18 @@ void clearLCD()
 }
 void startMotorLeft()
 {
- // TODO: Implementar la función para iniciar el motor a la izquierda
+ digitalWrite(IN1_PIN_PUENTE_H, HIGH);
+ digitalWrite(EN_PIN_PUENTE_H, HIGH);
 }
 void startMotorRight()
 {
- // TODO: Implementar la función para iniciar el motor a la derecha
+ digitalWrite(IN2_PIN_PUENTE_H, HIGH);
+ digitalWrite(EN_PIN_PUENTE_H, HIGH);
 }
 void stopMotor()
 {
- // TODO: Implementar la función para detener el motor
+ digitalWrite(IN2_PIN_PUENTE_H, LOW);
+ digitalWrite(EN_PIN_PUENTE_H, LOW);
 }
 
 void fisicalSetup()
@@ -140,5 +147,8 @@ void fisicalSetup()
  pinMode(BUZZER_PIN, OUTPUT);       // Configura el zumbador como salida
  pinMode(POTENTIOMETER_PIN, INPUT); // Configura el potenciómetro como entrada
 
+ pinMode(IN1_PIN_PUENTE_H, OUTPUT);
+ pinMode(IN2_PIN_PUENTE_H, OUTPUT);
+ pinMode(EN_PIN_PUENTE_H, OUTPUT);
  setupLCD(); // Inicializa la pantalla LCD
 }

@@ -44,7 +44,7 @@ String states_s[MAX_STATES] = {
 action state_table_action[MAX_STATES][MAX_EVENTS] = {
     {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_DUMMY*/
     {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, initialize},  /*ST_INIT*/
-    {none, error, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none}, /*ST_AWAITING_REMINDER_TIME*/
+    {moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, none, none, none, none, none, none, none, none, none, none, none}, /*ST_AWAITING_REMINDER_TIME*/
     {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_MOVING_TO_PILL_POS*/
     {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_STOP_MOVING*/
     {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none},  /*ST_SCANNING_AT_PILL_POS*/
