@@ -132,8 +132,7 @@ bool limit_switch_moving_sensor()
 {
  if (objetiveDay == NO_PILL_TOOKING) // Si no hay un ciclo de recordatorio activo, no se detecta el interruptor de límite en movimiento
   return false;
-
- if (limitSwitchPassed == objetiveDay) // Si el número de interruptores de límite pasados es igual al día objetivo, se ha alcanzado el final del recorrido
+ if (limitSwitchPassed == objetiveDay + 1) // Si el número de interruptores de límite pasados es igual al día objetivo, se ha alcanzado el final del recorrido
  {
   limitSwitchPassed = 0;              // Reiniciar el contador de interruptores de límite pasados
   new_event = EV_LIMIT_SWITCH_MOVING; // Establecer el evento de interruptor de límite en movimiento
