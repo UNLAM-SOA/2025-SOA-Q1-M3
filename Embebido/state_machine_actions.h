@@ -1,8 +1,9 @@
 #pragma once
 #include "timer_schedule.h"
+#include "event_types.h"
 #include <WiFi.h>
-#include <string.h>
-#include "fisical.h"
+#include "freeRTOS_Objects.h"
+#include "./Drivers/LCD_Driver.h"
 
 const char *ssid = "Wokwi-GUEST";
 const char *password = "";
@@ -10,8 +11,6 @@ const char *password = "";
 const char *ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = -4 * 3600;
 const int daylightOffset_sec = 3600;
-
-TimerHandle_t xTimer = NULL;
 
 void handleTimerCallback(TimerHandle_t xTimer);
 void createNewScheduledTimer();
@@ -105,6 +104,27 @@ void detectMovingLimitSwitch(void)
 
 typedef void (*action)();
 
+void showHourTimerLCD(void *)
+{
+ short displayingCurrentTime = 1;
+ while (1)
+ {
+  if (uxSemaphoreGetCount(showTimerSemaphore) > 0)
+  {
+   getLocalTime(&timeinfo, 10); // Actualiza la hora
+   // Semáforo disponible (no lo toma)
+   displayingCurrentTime == 1 ? writeLCD("Hora: " + String(timeinfo.tm_hour) + ":" + String(timeinfo.tm_min)) : writeLCD("Proxima toma: " + String(schedule[nextPeriod].tm_hour) + ":" + String(schedule[nextPeriod].tm_min));
+   displayingCurrentTime *= -1; // Cambia el estado de la variable
+   Serial.println("Show hour timer LCD");
+   vTaskDelay(1000 / portTICK_PERIOD_MS);
+  }
+  else
+  {
+   // Semáforo ocupado: tomar con bloqueo
+   xSemaphoreTake(showTimerSemaphore, portMAX_DELAY);
+  }
+ }
+}
 // Actions
 void initialize()
 {
@@ -112,13 +132,14 @@ void initialize()
  // Lee archivo con horarios y dias
  // Calcula el proximo horario y dia
  // Pasa al estado awaiting reminder time
-
  fisicalSetup();
  attachInterrupt(LIMIT_SWITCH_MOVIL, detectMovingLimitSwitch, RISING);
  setupWifi();
  setupTime();
  createNewScheduledTimer();
  timeEventsQueue = xQueueCreate(MAX_EVENTS_QUEUE, sizeof(events));
+ showTimerSemaphore = xSemaphoreCreateMutex();
+ xTaskCreate(showHourTimerLCD, "showHourTimerLCD", 1024, NULL, 1, NULL);
 }
 
 void noScheduleSet();
@@ -138,4 +159,16 @@ void error()
 }
 void none()
 {
+}
+
+void awaitingTimer()
+{
+ Serial.println("Awaiting timer...");
+ xSemaphoreGive(showTimerSemaphore);
+}
+void moving()
+{
+ Serial.println("Moving...");
+ xSemaphoreTake(showTimerSemaphore, 0);
+ setDayAndPeriod();
 }
