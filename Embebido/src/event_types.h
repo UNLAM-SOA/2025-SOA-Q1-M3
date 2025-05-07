@@ -12,6 +12,9 @@
 #define PRECENSE_THRESHOLD 100 // Valor de umbral para detectar la presencia de pastillas
 #define NO_PILL_TOOKING -1
 #define LONG_PRESS_TIME 500 // Tiempo de presión larga en milisegundos
+
+#define ENABLE_PERIODICAL_TIME_EVENTS 1
+#define PERIODICAL_TIME_EVENTS_TIME 60000 // Tiempo en milisegundos entre eventos de tiempo periódicos
 enum events
 {
  EV_TIME_SUNDAY_MORNING,
@@ -110,9 +113,18 @@ bool movingForward = true; // It starts moving forward
 
 short (*presenceSensorsArray[MAX_PILLS_PER_DAY])() = {readPresenceSensor_TM, readPresenceSensor_TT, readPresenceSensor_TN};
 short limitSwitchPassed = 0; // How many limit switches have been passed
-
+long lct_time = 0;           // Last cycle time
 bool time_sensor()
 {
+ if (ENABLE_PERIODICAL_TIME_EVENTS) // If periodic time events are enabled
+ {
+  if (millis() - lct_time > PERIODICAL_TIME_EVENTS_TIME) // If the time since the last event is greater than the defined time
+  {
+   lct_time = millis();                // Update the last cycle time
+   new_event = EV_TIME_THURSDAY_NIGHT; // Set the event to continue
+   return true;
+  }
+ }
  int queueValue;
  if (timeEventsQueue != NULL && xQueueReceive(timeEventsQueue, &queueValue, 0) == pdTRUE) // If there is a value in the queue
  {
