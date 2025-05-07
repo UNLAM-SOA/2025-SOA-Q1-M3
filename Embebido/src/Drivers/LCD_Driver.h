@@ -1,6 +1,6 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
-
+#include "freeRTOS_Objects.h"
 #define LCD_ADDRESS 0x27 // Dirección I2C común para displays 16x2
 #define LCD_COLUMNS 16
 #define LCD_ROWS 2
@@ -29,6 +29,7 @@ void writeLCD(const char *message)
  int currentPos = 0;
  char buffer[LCD_COLUMNS + 1]; // Buffer para cada línea
  int bufferIndex = 0;
+ xSemaphoreTake(lcdMutex, portMAX_DELAY);
 
  lcd.clear();
 
@@ -63,12 +64,7 @@ void writeLCD(const char *message)
   lcd.setCursor(0, currentLine);
   lcd.print(buffer);
  }
-}
-
-// Versión sobrecargada para String
-void writeLCD(const String &message)
-{
- writeLCD(message.c_str());
+ xSemaphoreGive(lcdMutex);
 }
 
 // Mueve el cursor a posición específica (0-based)

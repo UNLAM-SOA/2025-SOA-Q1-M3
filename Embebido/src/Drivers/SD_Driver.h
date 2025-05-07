@@ -1,3 +1,4 @@
+#pragma once
 #include "SD.h"
 
 #define SCK_PIN 18  // GPIO18
@@ -5,7 +6,7 @@
 #define MOSI_PIN 23 // GPIO23
 #define CS_PIN 5    // GPIO5
 
-String readSD(const char);
+String readSD(const char *);
 bool writeFileToSD(const char, const String &);
 bool overwriteFileToSD(const char, const String &);
 
@@ -23,7 +24,7 @@ void setupSD()
  Serial.println("SD module initialized");
 }
 
-String readSD(const char path)
+String readSD(const char *path)
 {
  file = SD.open(path);
  if (!file)

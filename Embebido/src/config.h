@@ -1,6 +1,4 @@
-#include "SD_MANAGER.h"
-
-#define MAX_PERIODS 21
+#include "Drivers/SD_Driver.h"
 
 #define PATH_SCHEDULE "/schedule.csv"
 
@@ -8,18 +6,13 @@
 void setDefaultConfig();
 void saveScheduleToSD();
 void readCsvConfig();
-
-String readSD(const char *);
-
 void printSchedule();
 void printCSVSchedule();
-
-tm schedule[MAX_PERIODS];
 
 void configSetup()
 {
  setupSD();
- if (!SD.exists("/schedule.csv"))
+ if (!SD.exists(PATH_SCHEDULE))
  {
   Serial.println("No config set, using defaults");
   setDefaultConfig();
@@ -29,25 +22,22 @@ void configSetup()
  {
   readCsvConfig();
  }
-
- // printSchedule();
- // printCSVSchedule();
 }
 
 void setDefaultConfig()
 {
- // Domingo
- schedule[0] = {0, 6, 0, 0, 0, 0, 0, -1};  // Mañana
- schedule[1] = {0, 14, 0, 0, 0, 0, 0, -1}; // Tarde
- schedule[2] = {0, 21, 0, 0, 0, 0, 0, 0};  // Noche
+ // Domingo   //s  m  h  d  m  y  wd  available
+ schedule[0] = {0, 0, 6, 0, 0, 0, 0, -1};  // Mañana
+ schedule[1] = {0, 0, 14, 0, 0, 0, 0, -1}; // Tarde
+ schedule[2] = {0, 59, 23, 0, 0, 0, 0, 0}; // Noche
  // Lunes
  schedule[3] = {0, 6, 0, 0, 0, 0, 1, 0};
- schedule[4] = {0, 0, 14, 0, 0, 0, 1, 0};
- schedule[5] = {0, 0, 21, 0, 0, 0, 1, 0};
+ schedule[4] = {0, 2, 18, 0, 0, 0, 1, 0};
+ schedule[5] = {0, 54, 22, 0, 0, 0, 1, -1};
  // Martes
- schedule[6] = {0, 0, 6, 0, 0, 0, 2, 0};
- schedule[7] = {0, 0, 14, 0, 0, 0, 2, 0};
- schedule[8] = {0, 0, 21, 0, 0, 0, 2, 0};
+ schedule[6] = {0, 0, 6, 0, 0, 0, 2, -1};
+ schedule[7] = {0, 30, 17, 0, 0, 0, 2, 0};
+ schedule[8] = {0, 30, 21, 0, 0, 0, 2, -1};
  // Miércoles
  schedule[9] = {0, 0, 6, 0, 0, 0, 3, 0};
  schedule[10] = {0, 0, 14, 0, 0, 0, 3, 0};
@@ -168,5 +158,4 @@ void printCSVSchedule()
  file.close();
  Serial.println("--------------------------");
  Serial.println("Fin del archivo\n");
-
 }
