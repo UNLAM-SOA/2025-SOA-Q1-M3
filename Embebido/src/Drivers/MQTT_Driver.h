@@ -5,6 +5,12 @@
 #include <ArduinoJson.h>
 #include "Queue.h"
 
+#define NO_VALUE 0
+#define AWAITING 1
+#define TIME_TO_TAKE_PILL 2
+#define NO_PILLS 0
+#define PILLS_DETECTED 1
+
 
 const char *mqtt_server = "industrial.api.ubidots.com";
 const int mqtt_port = 1883;
@@ -15,8 +21,8 @@ const char *next_dose_time_topic = "/v1.6/devices/esp32/next_dose_time";
 const char *actual_status_topic = "/v1.6/devices/esp32/actual_status";
 const char *pill_status_topic = "/v1.6/devices/esp32/pill_status";
 
-const char *set_volume_topic = "/v1.6/devices/esp32/volume"
-const char *start_buzzer_topic = "/v1.6/devices/esp32/buzzer"
+const char *set_volume_topic = "/v1.6/devices/esp32/volume";
+const char *start_buzzer_topic = "/v1.6/devices/esp32/buzzer";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -56,19 +62,22 @@ void mqtt_reconnect()
 void mqtt_publish_message(const char *topic, int value, const char *context = nullptr)
 {
   StaticJsonDocument<JSON_DOC_SIZE> doc;
-  JsonObject variableObj = doc.createNestedObject("status");
+  
+  doc["value"] = value;
 
-  variableObj["value"] = value;
+  JsonObject contextObj = doc.createNestedObject("context");
 
-  JsonObject context = variableObj.createNestedObject("context");
-
-  context["message"] = message;
+  contextObj["message"] = context;
   
   String buffer;
 
   serializeJson(doc, buffer);
 
-  client.publish(topic, buffer);
+  Serial.println("Sending message: " + buffer );
+
+  bool published = client.publish(topic, buffer.c_str());
+
+
 }
 
 void callback(char *topic, byte *payload, unsigned int length)
@@ -90,7 +99,7 @@ void callback(char *topic, byte *payload, unsigned int length)
    return;
  }
 
- json_queue_enqueue(&messagesQueue, &doc);
+ json_queue_enqueue(&messagesQueue, doc);
  
 }
 

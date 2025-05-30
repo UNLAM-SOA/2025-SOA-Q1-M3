@@ -1,4 +1,5 @@
 #include "Drivers/SD_Driver.h"
+#include "timer_schedule.h"
 
 #define PATH_SCHEDULE "/schedule.csv"
 

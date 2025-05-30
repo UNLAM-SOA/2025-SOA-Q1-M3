@@ -10,7 +10,8 @@
 #define NOTIFICATION_FRECUENCY_ALERT 1000
 #define NOTIFICATION_UNNAVAILABLE_ALERT 500
 
-long last_time = 0;
+
+long last_time;
 
 void (*setLeds[MAX_PILLS_PER_DAY])(short) = {setLedPresence_TM, setLedPresence_TT, setLedPresence_TN};
 
@@ -28,7 +29,7 @@ void showHourTimerLCDCallback(void *)
 
  sprintf(payload, "{\"value\":0, \"context\":{\"next_dose_time\":\"%s\"}}", mensaje);
 
- if (isBelowTlast_dose_timeime(LCD_BLINK_TIME))
+ if (isBelowTime(LCD_BLINK_TIME))
  {
   snprintf(mensaje, sizeof(mensaje), "Time: %02d:%02d", timeinfo.tm_hour, timeinfo.tm_min);
  }
@@ -39,16 +40,13 @@ void showHourTimerLCDCallback(void *)
   long now = millis();
   if (now - last_time > 50000) {
     snprintf(payload, sizeof(payload), "Next dose: \n%02d:%02d %s", schedule[nextPeriod].tm_hour, schedule[nextPeriod].tm_min, weekDays[schedule[nextPeriod].tm_wday]);
-    mqtt_publish_message(next_dose_time_topic, payload);
+    mqtt_publish_message(next_dose_time_topic, NO_VALUE, payload);
     last_time = now;
   }
  }
 
  writeLCD(mensaje);
 
-
- snprintf(payload, sizeof(payload), "Awaiting timer...");
- mqtt_publish_message(actual_status_topic, payload);
  vTaskDelay(LCD_BLINK_TIME);
 }
 

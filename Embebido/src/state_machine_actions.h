@@ -55,6 +55,8 @@ void none();
 void error() {}
 void none() {}
 
+bool awaiting = false;
+
 void modifyVolume() {
   setVolumeBuzzer(potentiometerLastValue);
 
@@ -78,6 +80,15 @@ void stopReturning() {
   DebugPrint("Stop returning...");
 }
 void awaitingTimer() {
+
+  if (!awaiting) {
+    char payload[50];
+    snprintf(payload, sizeof(payload), "Awaiting timer...");
+    mqtt_publish_message(actual_status_topic, AWAITING, payload);
+    awaiting = true;
+  }
+
+  
   DebugPrint("Awaiting timer...");
   xSemaphoreGive(showTimerSemaphore);
 }
@@ -86,10 +97,14 @@ void moving() {
   xSemaphoreTake(showTimerSemaphore, 0);
   writeLCD("Moving...");
 
-  char payload[50];
-  snprintf(payload, sizeof(payload), "Time to take the pill...");
-  mqtt_publish_message(actual_status_topic, 0, payload);
 
+  if(awaiting){
+   char payload[50];
+   snprintf(payload, sizeof(payload), "Time to take the pill...");
+   mqtt_publish_message(actual_status_topic, TIME_TO_TAKE_PILL, payload);
+   awaiting = false;
+  }
+  
   setDayAndPeriod();
   startMotorRight();
 }
@@ -139,13 +154,13 @@ void pauseCycle() {
 void processMessage() {
   StaticJsonDocument<JSON_DOC_SIZE> doc;
 
-  json_queue_dequeue(&messagesQueue, &doc);
+  json_queue_dequeue(&messagesQueue, doc);
 
   if (doc.containsKey("volume")) {
     long value = doc["volume"]["value"];
 
     if (value >= 0 && value <= 100) {
-      setVolumeBuzzer(volume);
+      setVolumeBuzzer(value);
     }
   } else if (doc.containsKey("buzzer")) {
     long value = doc["buzzer"]["value"];
