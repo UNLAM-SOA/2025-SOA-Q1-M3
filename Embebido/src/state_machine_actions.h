@@ -4,6 +4,7 @@
 #include "fisical.h"
 #include "event_types.h"
 #include "freeRTOS_Tasks.h"
+#include "./Drivers/MQTT_Driver.h"
 
 typedef void (*action)();
 
@@ -29,6 +30,8 @@ void initialize()
  xTaskCreate(showHourTimerLCD, "showHourTimerLCD", 2048, NULL, 1, NULL);
  xTaskCreate(notifyDoseAvailable, "notifyDoseAvailable", 2048, NULL, 1, NULL);
  xTaskCreate(notifyDoseUnnavailable, "notifyDoseUnnavailable", 2048, NULL, 1, NULL);
+
+ mqtt_setup();
 }
 
 void noScheduleSet();
