@@ -1,8 +1,10 @@
 #pragma once
+#include "Drivers/Queue.h"
 #include "fisical.h"
 #include "freeRTOS_Objects.h"
+#include "Drivers/MQTT_Driver.h"
 
-#define MAX_EVENTS 34
+#define MAX_EVENTS 35
 #define MAX_TYPE_EVENTS 7
 #define INVERSE_PRESENCE_SENSOR 1 // 0-->Hay pastilla, 1-->No hay pastilla
 
@@ -46,6 +48,7 @@ enum events
  EV_BUTTON_3_LONG_PRESS,
  EV_POT_INCREASED,
  EV_POT_DECREASED,
+ EV_MESSAGE_RECEIVED,
  EV_LIMIT_SWITCH_MOVING,
  EV_LIMIT_SWITCH_START,
  EV_PILL_DETECTED,
@@ -84,6 +87,7 @@ String events_s[] = {
     "EV_BUTTON_3_LONG_PRESS",
     "EV_POT_INCREASED",
     "EV_POT_DECREASED",
+    "EV_MESSAGE_RECEIVED",
     "EV_LIMIT_SWITCH_MOVING",
     "EV_LIMIT_SWITCH_START",
     "EV_PILL_DETECTED",
@@ -212,6 +216,15 @@ bool potentiometer_sensor()
  }
 
  return false;
+}
+
+bool message_sensor()
+{
+    if(!json_queue_is_empty(&messagesQueue)){
+        new_event = EV_MESSAGE_RECEIVED;
+        return true;
+    }
+    return false;
 }
 
 bool presence_sensor()

@@ -37,15 +37,18 @@ void showHourTimerLCDCallback(void *)
   snprintf(mensaje, sizeof(mensaje), "Next dose: \n%02d:%02d %s", schedule[nextPeriod].tm_hour, schedule[nextPeriod].tm_min, weekDays[schedule[nextPeriod].tm_wday]);
   
   long now = millis();
-  if (now - last_time > 10000) {
-    snprintf(payload, sizeof(mensaje), "Next dose: \n%02d:%02d %s", schedule[nextPeriod].tm_hour, schedule[nextPeriod].tm_min, weekDays[schedule[nextPeriod].tm_wday]);
-    mqtt_publish(next_dose_time_topic, payload);
+  if (now - last_time > 50000) {
+    snprintf(payload, sizeof(payload), "Next dose: \n%02d:%02d %s", schedule[nextPeriod].tm_hour, schedule[nextPeriod].tm_min, weekDays[schedule[nextPeriod].tm_wday]);
+    mqtt_publish_message(next_dose_time_topic, payload);
     last_time = now;
   }
  }
 
  writeLCD(mensaje);
 
+
+ snprintf(payload, sizeof(payload), "Awaiting timer...");
+ mqtt_publish_message(actual_status_topic, payload);
  vTaskDelay(LCD_BLINK_TIME);
 }
 

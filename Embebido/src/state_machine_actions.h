@@ -1,37 +1,39 @@
 #pragma once
-#include "setup_utils.h"
-#include "config.h"
-#include "fisical.h"
-#include "event_types.h"
-#include "freeRTOS_Tasks.h"
 #include "./Drivers/MQTT_Driver.h"
+#include "Drivers/Queue.h"
+#include "config.h"
+#include "event_types.h"
+#include "fisical.h"
+#include "freeRTOS_Tasks.h"
+#include "setup_utils.h"
 
 typedef void (*action)();
 
 // Actions
-void initialize()
-{
+void initialize() {
 
- // Lee archivo con horarios y dias
- configSetup();
+  // Lee archivo con horarios y dias
+  configSetup();
 
- fisicalSetup();
- attachInterrupt(LIMIT_SWITCH_PIN, detectMovingLimitSwitch, RISING);
- attachInterrupt(BUTTON_PIN, detectButtonPress, RISING); // Configura la interrupción para el botón
- setupWifi();
- setupTime();
+  fisicalSetup();
+  attachInterrupt(LIMIT_SWITCH_PIN, detectMovingLimitSwitch, RISING);
+  attachInterrupt(BUTTON_PIN, detectButtonPress,
+                  RISING); // Configura la interrupción para el botón
+  setupWifi();
+  setupTime();
 
- // Calcula el proximo horario y dia
- createNewScheduledTimer();
+  // Calcula el proximo horario y dia
+  createNewScheduledTimer();
 
- queueSetup();
- semaphoreSetup();
+  queueSetup();
+  semaphoreSetup();
 
- xTaskCreate(showHourTimerLCD, "showHourTimerLCD", 2048, NULL, 1, NULL);
- xTaskCreate(notifyDoseAvailable, "notifyDoseAvailable", 2048, NULL, 1, NULL);
- xTaskCreate(notifyDoseUnnavailable, "notifyDoseUnnavailable", 2048, NULL, 1, NULL);
+  xTaskCreate(showHourTimerLCD, "showHourTimerLCD", 2048, NULL, 1, NULL);
+  xTaskCreate(notifyDoseAvailable, "notifyDoseAvailable", 2048, NULL, 1, NULL);
+  xTaskCreate(notifyDoseUnnavailable, "notifyDoseUnnavailable", 2048, NULL, 1,
+              NULL);
 
- mqtt_setup();
+  mqtt_setup();
 }
 
 void noScheduleSet();
@@ -45,99 +47,118 @@ void stopReturning();
 void doseSkipped();
 void reanudeCycle();
 void pauseCycle();
+void processMessage();
 
 void error();
 void none();
 
-void error()
-{
-}
-void none()
-{
+void error() {}
+void none() {}
+
+void modifyVolume() {
+  setVolumeBuzzer(potentiometerLastValue);
+
+  Serial.print("New volume: ");
+  DebugPrint(potentiometerLastValue);
 }
 
-void modifyVolume()
-{
- setVolumeBuzzer(potentiometerLastValue);
+void doseTaken() {
+  xSemaphoreTake(noPillNotificationSemaphore, 0);
+  xSemaphoreTake(notificationSemaphore, 0);
+  setLeds[objetivePeriod](LOW);
+  stopBuzzer();
+  writeLCD("Dose taken\nReturning...");
+  startMotorLeft();
+}
+void stopReturning() {
+  stopMotor();
+  xSemaphoreGive(showTimerSemaphore);
+  objetiveDay = NO_PILL_TOOKING;
+  objetivePeriod = NO_PILL_TOOKING;
+  DebugPrint("Stop returning...");
+}
+void awaitingTimer() {
+  DebugPrint("Awaiting timer...");
+  xSemaphoreGive(showTimerSemaphore);
+}
+void moving() {
+  DebugPrint("Moving...");
+  xSemaphoreTake(showTimerSemaphore, 0);
+  writeLCD("Moving...");
 
- Serial.print("New volume: ");
- DebugPrint(potentiometerLastValue);
-}
+  char payload[50];
+  snprintf(payload, sizeof(payload), "Time to take the pill...");
+  mqtt_publish_message(actual_status_topic, 0, payload);
 
-void doseTaken()
-{
- xSemaphoreTake(noPillNotificationSemaphore, 0);
- xSemaphoreTake(notificationSemaphore, 0);
- setLeds[objetivePeriod](LOW);
- stopBuzzer();
- writeLCD("Dose taken\nReturning...");
- startMotorLeft();
+  setDayAndPeriod();
+  startMotorRight();
 }
-void stopReturning()
-{
- stopMotor();
- xSemaphoreGive(showTimerSemaphore);
- objetiveDay = NO_PILL_TOOKING;
- objetivePeriod = NO_PILL_TOOKING;
- DebugPrint("Stop returning...");
+void scanning() {
+  setLeds[objetivePeriod](LOW);
+  stopBuzzer();
+  stopMotor();
+  DebugPrint("Scanning");
 }
-void awaitingTimer()
-{
- DebugPrint("Awaiting timer...");
- xSemaphoreGive(showTimerSemaphore);
+void pillDetected() {
+  char payload[50];
+  snprintf(payload, sizeof(payload), "Pill detected");
+  mqtt_publish_message(pill_status_topic, 0, payload);
+  writeLCD("Pill detected");
+  xSemaphoreGive(notificationSemaphore);
+  DebugPrint("Pill detected...");
 }
-void moving()
-{
- DebugPrint("Moving...");
- xSemaphoreTake(showTimerSemaphore, 0);
- writeLCD("Moving...");
- setDayAndPeriod();
- startMotorRight();
+void noPillDetected() {
+  char payload[50];
+  snprintf(payload, sizeof(payload), "No pill detected");
+  mqtt_publish_message(pill_status_topic, 0, payload);
+  DebugPrint("No pill detected...");
+  xSemaphoreGive(noPillNotificationSemaphore);
 }
-void scanning()
-{
- setLeds[objetivePeriod](LOW);
- stopBuzzer();
- stopMotor();
- DebugPrint("Scanning");
+void doseSkipped() {
+  xSemaphoreTake(notificationSemaphore, 0);
+  xSemaphoreTake(noPillNotificationSemaphore, 0);
+  setLeds[objetivePeriod](LOW);
+  stopBuzzer();
+  DebugPrint("Dose skipped...");
+  writeLCD("Dose skipped\nReturning...");
+  startMotorLeft();
 }
-void pillDetected()
-{
- writeLCD("Pill detected");
- xSemaphoreGive(notificationSemaphore);
- DebugPrint("Pill detected...");
+void settingSchedule() {
+  DebugPrint("Setting schedule...");
+  xSemaphoreGive(showTimerSemaphore);
 }
-void noPillDetected()
-{
- DebugPrint("No pill detected...");
- xSemaphoreGive(noPillNotificationSemaphore);
+void noScheduleSet() {
+  DebugPrint("No schedule set...");
+  xSemaphoreGive(showTimerSemaphore);
 }
-void doseSkipped()
-{
- xSemaphoreTake(notificationSemaphore, 0);
- xSemaphoreTake(noPillNotificationSemaphore, 0);
- setLeds[objetivePeriod](LOW);
- stopBuzzer();
- DebugPrint("Dose skipped...");
- writeLCD("Dose skipped\nReturning...");
- startMotorLeft();
+void reanudeCycle() { xSemaphoreGive(showTimerSemaphore); }
+void pauseCycle() {
+  xSemaphoreTake(showTimerSemaphore, 0);
+  writeLCD("Cycle paused\nPress button to resume...");
 }
-void settingSchedule()
-{
- DebugPrint("Setting schedule...");
- xSemaphoreGive(showTimerSemaphore);
-}
-void noScheduleSet()
-{
- DebugPrint("No schedule set...");
- xSemaphoreGive(showTimerSemaphore);
-}
-void reanudeCycle()
-{
- xSemaphoreGive(showTimerSemaphore);
-}
-void pauseCycle()
-{
- xSemaphoreTake(showTimerSemaphore, 0);
- writeLCD("Cycle paused\nPress button to resume...");
+void processMessage() {
+  StaticJsonDocument<JSON_DOC_SIZE> doc;
+
+  json_queue_dequeue(&messagesQueue, &doc);
+
+  if (doc.containsKey("volume")) {
+    long value = doc["volume"]["value"];
+
+    if (value >= 0 && value <= 100) {
+      setVolumeBuzzer(volume);
+    }
+  } else if (doc.containsKey("buzzer")) {
+    long value = doc["buzzer"]["value"];
+
+    switch (value) {
+    case 0:
+      stopBuzzer();
+      break;
+    case 1:
+      startBuzzer();
+      break;
+    default:
+      Serial.print("Buzzer value not recognized");
+    }
+  }
 }
