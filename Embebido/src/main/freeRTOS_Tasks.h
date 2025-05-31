@@ -1,7 +1,7 @@
-#include "freeRTOS_Objects.h"
 #include "timer_schedule.h"
 #include "setup_utils.h"
 #include "fisical.h"
+#include "freeRTOS_Objects.h"
 #include "./Drivers/MQTT_Driver.h"
 
 #define GET_TIME_TIMEOUT 10
@@ -28,7 +28,7 @@ void showHourTimerLCDCallback(void *)
 
  sprintf(payload, "{\"value\":0, \"context\":{\"next_dose_time\":\"%s\"}}", mensaje);
 
- if (isBelowTlast_dose_timeime(LCD_BLINK_TIME))
+ if (isBelowTime(LCD_BLINK_TIME))
  {
   snprintf(mensaje, sizeof(mensaje), "Time: %02d:%02d", timeinfo.tm_hour, timeinfo.tm_min);
  }

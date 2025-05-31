@@ -11,6 +11,8 @@ void printCSVSchedule();
 
 void configSetup()
 {
+    setDefaultConfig();
+ /*
  setupSD();
  if (!SD.exists(PATH_SCHEDULE))
  {
@@ -22,6 +24,7 @@ void configSetup()
  {
   readCsvConfig();
  }
+ */
 }
 
 void setDefaultConfig()

@@ -19,7 +19,7 @@ void setupSD()
  if (!SD.begin(CS_PIN))
  {
   Serial.println("Error in SD module has occurred!");
-  ESP.restart();
+  //ESP.restart();
  }
  Serial.println("SD module initialized");
 }
