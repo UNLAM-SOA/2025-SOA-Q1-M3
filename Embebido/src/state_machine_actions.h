@@ -81,9 +81,12 @@ void stopReturning() {
 }
 void awaitingTimer() {
 
+  // TODO: do we need to send it regularly? If the esp was connected before the android app, it won't receive the
+  // notification until it changes from awaiting to moving
+
   if (!awaiting) {
     char payload[50];
-    snprintf(payload, sizeof(payload), "Awaiting timer...");
+    snprintf(payload, sizeof(payload), "Awaiting timer");
     mqtt_publish_message(actual_status_topic, AWAITING, payload);
     awaiting = true;
   }
