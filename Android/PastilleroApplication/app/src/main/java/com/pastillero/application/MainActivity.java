@@ -23,6 +23,7 @@ import android.widget.Toast;
 import com.pastillero.application.mqtt.ConfigMQTT;
 import com.pastillero.application.mqtt.MqttConnectionCallback;
 import com.pastillero.application.mqtt.MqttHandler;
+import com.pastillero.application.mqtt.MqttService;
 
 import java.util.UUID;
 
@@ -44,7 +45,6 @@ public class MainActivity extends AppCompatActivity {
     private final ActualStatusReceiver actualStatusReceiver = new ActualStatusReceiver();
     private final PillStatusReceiver pillStatusReceiver = new PillStatusReceiver();
 
-    private final ConnectionLostReceiver connectionLostReceiver = new ConnectionLostReceiver();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,64 +55,51 @@ public class MainActivity extends AppCompatActivity {
         actualStatusText = findViewById(R.id.actual_status);
 
         broadcastManager = LocalBroadcastManager.getInstance(this);
-        mqttHandler = new MqttHandler(getApplicationContext());
 
         configBroadcastReceivers();
 
-        connectMQTT();
+        startMqttService();
+
+        Log.i("MQTT", "Service started running");
+
+    }
+
+    private void startMqttService() {
+        Intent serviceIntent = new Intent(this, MqttService.class);
+        startForegroundService(serviceIntent);
 
     }
 
     @Override
     protected void onDestroy(){
-        mqttHandler.disconnect();
         broadcastManager.unregisterReceiver(nextDoseReceiver);
         broadcastManager.unregisterReceiver(actualStatusReceiver);
         broadcastManager.unregisterReceiver(pillStatusReceiver);
-        broadcastManager.unregisterReceiver(connectionLostReceiver);
         super.onDestroy();
-    }
-
-    private void connectMQTT() {
-        mqttHandler.connect(ConfigMQTT.SERVER_URL, UUID.randomUUID().toString(), ConfigMQTT.USERNAME, ConfigMQTT.PASSWORD, new MqttConnectionCallback() {
-
-            @Override
-            public void onSuccess() {
-                subscribeToTopic(ConfigMQTT.NEXT_DOSE_TOPIC);
-                subscribeToTopic(ConfigMQTT.ACTUAL_STATUS_TOPIC);
-                subscribeToTopic(ConfigMQTT.PILL_STATUS_TOPIC);
-                Log.i("Pastillero", "Successfully connected");
-            }
-
-            @Override
-            public void onFailure(Throwable exception) {
-                Toast.makeText(MainActivity.this, "Error connecting to MQTT", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
 
     /* The supress annotation is due to registerReceiver needs to know if the receiver listen to
     messages from other apps or only from your app */
+    //TODO: do ContextCompat.registerReceiver works?
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     private void configBroadcastReceivers() {
         filterReceiveNextDoseMessage = new IntentFilter(MqttHandler.NEXT_DOSE_MESSAGE_RECEIVED);
         filterReceiveActualStatusMessage = new IntentFilter(MqttHandler.ACTUAL_STATUS_MESSAGE_RECEIVED);
         filterReceivePillStatusMessage = new IntentFilter(MqttHandler.PILL_STATUS_MESSAGE_RECEIVED);
-        filterConnectionLost = new IntentFilter(MqttHandler.CONNECTION_LOST);
 
 
-        broadcastManager.registerReceiver(connectionLostReceiver, filterConnectionLost);
         broadcastManager.registerReceiver(nextDoseReceiver, filterReceiveNextDoseMessage);
         broadcastManager.registerReceiver(actualStatusReceiver, filterReceiveActualStatusMessage);
         broadcastManager.registerReceiver(pillStatusReceiver, filterReceivePillStatusMessage);
         Log.i("Pastillero", "Registered receivers");
     }
-    private void subscribeToTopic(String topic){
-        Toast.makeText(this, "Subscribing to topic "+ topic, Toast.LENGTH_SHORT).show();
-        mqttHandler.subscribe(topic);
-    }
 
+    @Override
+    protected void onResume(){
+        super.onResume();
+        loadLastKnownState();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -160,18 +147,31 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public class ConnectionLostReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Toast.makeText(context, "Connection lost", Toast.LENGTH_SHORT).show();
-            connectMQTT();
-        }
-    }
-
     public class PillStatusReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
 
+        }
+    }
+
+    private void loadLastKnownState(){
+        android.content.SharedPreferences prefs = getSharedPreferences("PastilleroPrefs", Context.MODE_PRIVATE);
+
+        String lastNextDoseMessage = prefs.getString("last_next_dose_message", null);
+        if (lastNextDoseMessage != null) {
+            nextDoseTimeText.setText(lastNextDoseMessage);
+        }
+
+        String lastStatusMessage = prefs.getString("last_status_message", null);
+        int lastStatusValue = prefs.getInt("last_status_value", -1);
+
+        if (lastStatusMessage != null) {
+            actualStatusText.setText(lastStatusMessage);
+            if (lastStatusValue == 0) {
+                actualStatusText.setBackgroundColor(Color.GREEN);
+            } else {
+                actualStatusText.setBackgroundColor(Color.WHITE);
+            }
         }
     }
 }

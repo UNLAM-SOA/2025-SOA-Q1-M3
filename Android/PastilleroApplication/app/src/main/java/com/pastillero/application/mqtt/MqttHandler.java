@@ -29,6 +29,12 @@ public class MqttHandler implements MqttCallback {
 
     private LocalBroadcastManager broadcastManager;
 
+    private Runnable connectionLostCallback;
+
+    public void setConnectionLostCallback(Runnable callback){
+        this.connectionLostCallback = callback;
+    }
+
     public MqttHandler(Context context) {
         this.context = context;
         this.broadcastManager = LocalBroadcastManager.getInstance(context);
@@ -82,7 +88,11 @@ public class MqttHandler implements MqttCallback {
 
     @Override
     public void connectionLost(Throwable cause) {
-        Log.e("MQTT", cause.getMessage());
+        Log.e("MQTT", "MQTT Connection lost");
+
+        if(connectionLostCallback != null){
+            connectionLostCallback.run();
+        }
 
         Intent i = new Intent(CONNECTION_LOST);
         broadcastManager.sendBroadcast(i);
@@ -114,6 +124,12 @@ public class MqttHandler implements MqttCallback {
             JSONObject payloadContext = json.getJSONObject("context");
             String message = payloadContext.getString("message");
 
+            context.getSharedPreferences("PastilleroPrefs", Context.MODE_PRIVATE)
+                    .edit()
+                    .putString("last_next_dose_message", message)
+                    .apply();
+
+
             Intent i = new Intent(NEXT_DOSE_MESSAGE_RECEIVED);
             i.putExtra("message", message);
             broadcastManager.sendBroadcast(i);
@@ -131,6 +147,11 @@ public class MqttHandler implements MqttCallback {
             int value = json.getInt("value");
             JSONObject payloadContext = json.getJSONObject("context");
             String message = payloadContext.getString("message");
+
+            context.getSharedPreferences("PastilleroPrefs", Context.MODE_PRIVATE)
+                    .edit()
+                    .putString("last_actual_status_message", message)
+                    .apply();
 
             Intent i = new Intent(ACTUAL_STATUS_MESSAGE_RECEIVED);
             i.putExtra("value", value);
