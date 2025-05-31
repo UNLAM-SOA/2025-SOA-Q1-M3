@@ -10,6 +10,7 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MqttHandler implements MqttCallback {
@@ -26,7 +27,7 @@ public class MqttHandler implements MqttCallback {
 
     public MqttHandler(Context context) { this.context = context; }
 
-    public void connect(String serverUrl, String clientId, String username, String password) {
+    public void connect(String serverUrl, String clientId, String username, String password, MqttConnectionCallback callback) {
         try {
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
@@ -37,8 +38,11 @@ public class MqttHandler implements MqttCallback {
             client = new MqttClient(serverUrl, clientId, persistance);
             client.setCallback(this);
             client.connect(options);
+
+            callback.onSuccess();
         } catch (Exception e) {
             Log.e("MQTT", e.getMessage());
+            callback.onFailure(e);
         }
     }
 
@@ -60,9 +64,10 @@ public class MqttHandler implements MqttCallback {
         }
     }
 
-    public void suscribe(String topic) {
+    public void subscribe(String topic) {
         try{
             client.subscribe(topic);
+            Log.i("MQTT", "Topic subscribed " + topic);
         } catch (Exception e) {
             Log.e("MQTT", e.getMessage());
         }
@@ -77,11 +82,65 @@ public class MqttHandler implements MqttCallback {
     }
 
     @Override
-    public void messageArrived(String topic, MqttMessage message) throws Exception {
-        String msg = message.toString();
+    public void messageArrived(String topic, MqttMessage message) {
+        String payload = message.toString();
 
-        JSONObject json = new JSONObject(message.toString());
-        Float.parseFloat(json.getJSONObject("context").getString("message");
+        switch (topic){
+            case ConfigMQTT.NEXT_DOSE_TOPIC:
+                nextDoseMessageReceived(payload);
+                break;
+            case ConfigMQTT.ACTUAL_STATUS_TOPIC:
+                actualStatusMessageReceived(payload);
+                break;
+            case ConfigMQTT.PILL_STATUS_TOPIC:
+                pillStatusMessageReceived(payload);
+                break;
+            default:
+                Log.e("MQTT", "Topic not found");
+        }
+
+    }
+
+    private void nextDoseMessageReceived(String payload) {
+        try {
+            JSONObject json = new JSONObject(payload);
+            JSONObject payloadContext = json.getJSONObject("context");
+            String message = payloadContext.getString("message");
+
+            Intent i = new Intent(NEXT_DOSE_MESSAGE_RECEIVED);
+            i.putExtra("message", message);
+            context.sendBroadcast(i);
+
+            Log.i("MQTT", "Message arrived " + payload );
+            Log.i( "MQTT", "Broadcast was sent");
+
+
+        } catch (JSONException e) {
+            Log.e("MQTT", e.getMessage());
+        }
+
+    }
+
+    private void actualStatusMessageReceived(String payload) {
+        try {
+            JSONObject json = new JSONObject(payload);
+            int value = json.getInt("value");
+            JSONObject payloadContext = json.getJSONObject("context");
+            String message = payloadContext.getString("message");
+
+            Intent i = new Intent(ACTUAL_STATUS_MESSAGE_RECEIVED);
+            i.putExtra("value", value);
+            i.putExtra("message", message);
+            context.sendBroadcast(i);
+
+            Log.i("MQTT", "Message arrived " + payload);
+            Log.i( "MQTT", "Broadcast was sent");
+        } catch (JSONException e) {
+            Log.e("MQTT", e.getMessage());
+        }
+    }
+
+    private void pillStatusMessageReceived(String payload) {
 
     }
 
