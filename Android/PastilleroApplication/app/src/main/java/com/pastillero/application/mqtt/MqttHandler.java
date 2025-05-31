@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -25,7 +27,12 @@ public class MqttHandler implements MqttCallback {
     private MqttClient client;
     private Context context;
 
-    public MqttHandler(Context context) { this.context = context; }
+    private LocalBroadcastManager broadcastManager;
+
+    public MqttHandler(Context context) {
+        this.context = context;
+        this.broadcastManager = LocalBroadcastManager.getInstance(context);
+    }
 
     public void connect(String serverUrl, String clientId, String username, String password, MqttConnectionCallback callback) {
         try {
@@ -78,7 +85,7 @@ public class MqttHandler implements MqttCallback {
         Log.e("MQTT", cause.getMessage());
 
         Intent i = new Intent(CONNECTION_LOST);
-        context.sendBroadcast(i);
+        broadcastManager.sendBroadcast(i);
     }
 
     @Override
@@ -109,10 +116,7 @@ public class MqttHandler implements MqttCallback {
 
             Intent i = new Intent(NEXT_DOSE_MESSAGE_RECEIVED);
             i.putExtra("message", message);
-            context.sendBroadcast(i);
-
-            Log.i("MQTT", "Message arrived " + payload );
-            Log.i( "MQTT", "Broadcast was sent");
+            broadcastManager.sendBroadcast(i);
 
 
         } catch (JSONException e) {
@@ -131,10 +135,8 @@ public class MqttHandler implements MqttCallback {
             Intent i = new Intent(ACTUAL_STATUS_MESSAGE_RECEIVED);
             i.putExtra("value", value);
             i.putExtra("message", message);
-            context.sendBroadcast(i);
+            broadcastManager.sendBroadcast(i);
 
-            Log.i("MQTT", "Message arrived " + payload);
-            Log.i( "MQTT", "Broadcast was sent");
         } catch (JSONException e) {
             Log.e("MQTT", e.getMessage());
         }
