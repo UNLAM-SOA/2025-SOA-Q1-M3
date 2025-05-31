@@ -5,12 +5,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.util.Log;
 import android.view.Menu;
@@ -27,6 +29,7 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity {
 
     private MqttHandler mqttHandler;
+    private LocalBroadcastManager broadcastManager;
 
     private TextView nextDoseTimeText;
     private TextView actualStatusText;
@@ -51,21 +54,22 @@ public class MainActivity extends AppCompatActivity {
         nextDoseTimeText = findViewById(R.id.next_dose_time);
         actualStatusText = findViewById(R.id.actual_status);
 
+        broadcastManager = LocalBroadcastManager.getInstance(this);
         mqttHandler = new MqttHandler(getApplicationContext());
 
-        connectMQTT();
-
         configBroadcastReceivers();
+
+        connectMQTT();
 
     }
 
     @Override
     protected void onDestroy(){
         mqttHandler.disconnect();
-        unregisterReceiver(nextDoseReceiver);
-        unregisterReceiver(actualStatusReceiver);
-        unregisterReceiver(pillStatusReceiver);
-        unregisterReceiver(connectionLostReceiver);
+        broadcastManager.unregisterReceiver(nextDoseReceiver);
+        broadcastManager.unregisterReceiver(actualStatusReceiver);
+        broadcastManager.unregisterReceiver(pillStatusReceiver);
+        broadcastManager.unregisterReceiver(connectionLostReceiver);
         super.onDestroy();
     }
 
@@ -91,28 +95,19 @@ public class MainActivity extends AppCompatActivity {
     /* The supress annotation is due to registerReceiver needs to know if the receiver listen to
     messages from other apps or only from your app */
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
-    private void configBroadcastReceivers(){
+    private void configBroadcastReceivers() {
         filterReceiveNextDoseMessage = new IntentFilter(MqttHandler.NEXT_DOSE_MESSAGE_RECEIVED);
         filterReceiveActualStatusMessage = new IntentFilter(MqttHandler.ACTUAL_STATUS_MESSAGE_RECEIVED);
         filterReceivePillStatusMessage = new IntentFilter(MqttHandler.PILL_STATUS_MESSAGE_RECEIVED);
         filterConnectionLost = new IntentFilter(MqttHandler.CONNECTION_LOST);
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
-            registerReceiver(connectionLostReceiver, filterConnectionLost, Context.RECEIVER_NOT_EXPORTED);
-            registerReceiver(nextDoseReceiver, filterReceiveNextDoseMessage, Context.RECEIVER_NOT_EXPORTED);
-            registerReceiver(actualStatusReceiver, filterReceiveActualStatusMessage, Context.RECEIVER_NOT_EXPORTED);
-            registerReceiver(pillStatusReceiver, filterReceivePillStatusMessage, Context.RECEIVER_NOT_EXPORTED);
 
-            Log.i("Pastillero", "Registered receivers");
-        } else {
-            registerReceiver(connectionLostReceiver, filterConnectionLost);
-            registerReceiver(nextDoseReceiver, filterReceiveNextDoseMessage);
-            registerReceiver(actualStatusReceiver, filterReceiveActualStatusMessage);
-            registerReceiver(pillStatusReceiver, filterReceivePillStatusMessage);
-            Log.i("Pastillero", "Registered receivers");
-        }
-}
-
+        broadcastManager.registerReceiver(connectionLostReceiver, filterConnectionLost);
+        broadcastManager.registerReceiver(nextDoseReceiver, filterReceiveNextDoseMessage);
+        broadcastManager.registerReceiver(actualStatusReceiver, filterReceiveActualStatusMessage);
+        broadcastManager.registerReceiver(pillStatusReceiver, filterReceivePillStatusMessage);
+        Log.i("Pastillero", "Registered receivers");
+    }
     private void subscribeToTopic(String topic){
         Toast.makeText(this, "Subscribing to topic "+ topic, Toast.LENGTH_SHORT).show();
         mqttHandler.subscribe(topic);
@@ -157,10 +152,10 @@ public class MainActivity extends AppCompatActivity {
 
             actualStatusText.setText(message);
 
-            if(value == 1) {
-                actualStatusText.setBackgroundColor(ContextCompat.getColor(context, R.color.green));
+            if(value == 0) {
+                actualStatusText.setBackgroundColor(Color.GREEN);
             } else {
-                actualStatusText.setBackgroundColor(ContextCompat.getColor(context, R.color.white));
+                actualStatusText.setBackgroundColor(Color.WHITE);
             }
         }
     }
