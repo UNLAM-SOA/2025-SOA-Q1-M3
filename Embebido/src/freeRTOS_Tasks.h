@@ -39,7 +39,7 @@ void showHourTimerLCDCallback(void *)
   
   long now = millis();
   if (now - last_time > 50000) {
-    snprintf(payload, sizeof(payload), "Next dose: \n%02d:%02d %s", schedule[nextPeriod].tm_hour, schedule[nextPeriod].tm_min, weekDays[schedule[nextPeriod].tm_wday]);
+    snprintf(payload, sizeof(payload), "%02d:%02d %s", schedule[nextPeriod].tm_hour, schedule[nextPeriod].tm_min, weekDays[schedule[nextPeriod].tm_wday]);
     mqtt_publish_message(next_dose_time_topic, NO_VALUE, payload);
     last_time = now;
   }
