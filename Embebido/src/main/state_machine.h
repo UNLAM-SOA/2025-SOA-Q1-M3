@@ -99,9 +99,6 @@ void state_machine()
   {
    if (new_event != EV_CONT)
    {
-    Serial.print(current_state);
-    Serial.print("  ");
-    Serial.println(new_event);
     DebugPrintEstado(states_s[current_state], events_s[new_event]);
    }
 

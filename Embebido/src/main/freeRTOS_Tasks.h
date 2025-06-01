@@ -25,8 +25,6 @@ void showHourTimerLCDCallback(void *)
 {
  getLocalTime(&timeinfo, GET_TIME_TIMEOUT); // Actualiza la hora
  char mensaje[LCD_COLUMNS * LCD_ROWS] = {0};
-
-
  char payload[300] = {0};
 
  sprintf(payload, "{\"value\":0, \"context\":{\"next_dose_time\":\"%s\"}}", mensaje);

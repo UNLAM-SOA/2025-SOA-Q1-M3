@@ -181,8 +181,6 @@ bool button_3_sensor()
 }
 bool limit_switch_moving_sensor()
 {
-    Serial.println(limitSwitchPassed);
-    Serial.println(objetiveDay);
     if (objetiveDay == NO_PILL_TOOKING) // Si no hay un ciclo de recordatorio activo, no se detecta el interruptor de límite en movimiento
         return false;
     if (limitSwitchPassed == objetiveDay) // Si el número de interruptores de límite pasados es igual al día objetivo, se ha alcanzado el final del recorrido
@@ -238,8 +236,6 @@ bool presence_sensor()
         return false;
 
     short value = presenceSensorsArray[objetivePeriod]();
-    Serial.println(value);
-    Serial.println(PRECENSE_THRESHOLD);
     new_event = INVERSE_PRESENCE_SENSOR ? ((value > PRECENSE_THRESHOLD) ? EV_PILL_DETECTED : EV_PILL_NOT_DETECTED)
                                         : ((value < PRECENSE_THRESHOLD) ? EV_PILL_DETECTED
                                                                         : EV_PILL_NOT_DETECTED);
