@@ -12,3 +12,4 @@ extern SemaphoreHandle_t noPillNotificationSemaphore;
 void waitForSemaphore(void (*callback)(void *), void *params, SemaphoreHandle_t semaphore);
 
 #endif
+

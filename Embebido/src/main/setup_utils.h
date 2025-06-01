@@ -12,8 +12,8 @@
 #define TIMEOUT_GET_TIME 5
 #define DEBOUNCE_SECONDS 200
 
-const char *ssid = "CLAROVLG";
-const char *password = "F6BCA8C4";
+const char *ssid = "Wokwi-GUEST";
+const char *password = "";
 
 const char *ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = GMT_DIFFERENCE * HOUR_TO_SECONDS;

@@ -1,4 +1,6 @@
 #include "Drivers/SD_Driver.h"
+#include "timer_schedule.h"
+
 
 #define PATH_SCHEDULE "/schedule.csv"
 
@@ -13,6 +15,7 @@ void configSetup()
 {
     setDefaultConfig();
  /*
+
  setupSD();
  if (!SD.exists(PATH_SCHEDULE))
  {
@@ -24,6 +27,7 @@ void configSetup()
  {
   readCsvConfig();
  }
+
  */
 }
 

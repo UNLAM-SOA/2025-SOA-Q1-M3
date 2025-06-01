@@ -1,8 +1,12 @@
 #pragma once
+
+#include "Drivers/Queue.h"
 #include "fisical.h"
 #include "freeRTOS_Objects.h"
+#include "Drivers/MQTT_Driver.h"
 
-#define MAX_EVENTS 34
+#define MAX_EVENTS 35
+
 #define MAX_TYPE_EVENTS 7
 #define INVERSE_PRESENCE_SENSOR 1 // 0-->Hay pastilla, 1-->No hay pastilla
 
@@ -17,40 +21,41 @@
 #define PERIODICAL_TIME_EVENTS_TIME 60000 // Para testear: Tiempo en milisegundos entre eventos de tiempo periódicos
 enum events
 {
-    EV_TIME_SUNDAY_MORNING,
-    EV_TIME_SUNDAY_AFTERNOON,
-    EV_TIME_SUNDAY_NIGHT,
-    EV_TIME_MONDAY_MORNING,
-    EV_TIME_MONDAY_AFTERNOON,
-    EV_TIME_MONDAY_NIGHT,
-    EV_TIME_TUESDAY_MORNING,
-    EV_TIME_TUESDAY_AFTERNOON,
-    EV_TIME_TUESDAY_NIGHT,
-    EV_TIME_WEDNESDAY_MORNING,
-    EV_TIME_WEDNESDAY_AFTERNOON,
-    EV_TIME_WEDNESDAY_NIGHT,
-    EV_TIME_THURSDAY_MORNING,
-    EV_TIME_THURSDAY_AFTERNOON,
-    EV_TIME_THURSDAY_NIGHT,
-    EV_TIME_FRIDAY_MORNING,
-    EV_TIME_FRIDAY_AFTERNOON,
-    EV_TIME_FRIDAY_NIGHT,
-    EV_TIME_SATURDAY_MORNING,
-    EV_TIME_SATURDAY_AFTERNOON,
-    EV_TIME_SATURDAY_NIGHT,
-    EV_BUTTON_1_TAP,
-    EV_BUTTON_2_TAP,
-    EV_BUTTON_3_TAP,
-    EV_BUTTON_1_LONG_PRESS,
-    EV_BUTTON_2_LONG_PRESS,
-    EV_BUTTON_3_LONG_PRESS,
-    EV_POT_INCREASED,
-    EV_POT_DECREASED,
-    EV_LIMIT_SWITCH_MOVING,
-    EV_LIMIT_SWITCH_START,
-    EV_PILL_DETECTED,
-    EV_PILL_NOT_DETECTED,
-    EV_CONT,
+ EV_TIME_SUNDAY_MORNING,
+ EV_TIME_SUNDAY_AFTERNOON,
+ EV_TIME_SUNDAY_NIGHT,
+ EV_TIME_MONDAY_MORNING,
+ EV_TIME_MONDAY_AFTERNOON,
+ EV_TIME_MONDAY_NIGHT,
+ EV_TIME_TUESDAY_MORNING,
+ EV_TIME_TUESDAY_AFTERNOON,
+ EV_TIME_TUESDAY_NIGHT,
+ EV_TIME_WEDNESDAY_MORNING,
+ EV_TIME_WEDNESDAY_AFTERNOON,
+ EV_TIME_WEDNESDAY_NIGHT,
+ EV_TIME_THURSDAY_MORNING,
+ EV_TIME_THURSDAY_AFTERNOON,
+ EV_TIME_THURSDAY_NIGHT,
+ EV_TIME_FRIDAY_MORNING,
+ EV_TIME_FRIDAY_AFTERNOON,
+ EV_TIME_FRIDAY_NIGHT,
+ EV_TIME_SATURDAY_MORNING,
+ EV_TIME_SATURDAY_AFTERNOON,
+ EV_TIME_SATURDAY_NIGHT,
+ EV_BUTTON_1_TAP,
+ EV_BUTTON_2_TAP,
+ EV_BUTTON_3_TAP,
+ EV_BUTTON_1_LONG_PRESS,
+ EV_BUTTON_2_LONG_PRESS,
+ EV_BUTTON_3_LONG_PRESS,
+ EV_POT_INCREASED,
+ EV_POT_DECREASED,
+ EV_MESSAGE_RECEIVED,
+ EV_LIMIT_SWITCH_MOVING,
+ EV_LIMIT_SWITCH_START,
+ EV_PILL_DETECTED,
+ EV_PILL_NOT_DETECTED,
+ EV_CONT,
 } new_event = EV_CONT;
 
 String events_s[] = {
@@ -84,6 +89,7 @@ String events_s[] = {
     "EV_BUTTON_3_LONG_PRESS",
     "EV_POT_INCREASED",
     "EV_POT_DECREASED",
+    "EV_MESSAGE_RECEIVED",
     "EV_LIMIT_SWITCH_MOVING",
     "EV_LIMIT_SWITCH_START",
     "EV_PILL_DETECTED",
@@ -195,22 +201,31 @@ bool limit_switch_moving_sensor()
 
 bool potentiometer_sensor()
 {
-    long potentiometerNewValue = readPotentiometer();
+ long potentiometerNewValue = readPotentiometer();
 
-    if (potentiometerNewValue > potentiometerLastValue)
-    {
-        potentiometerLastValue = potentiometerNewValue;
-        new_event = EV_POT_INCREASED;
+ if (potentiometerNewValue > potentiometerLastValue)
+ {
+  potentiometerLastValue = potentiometerNewValue;
+  new_event = EV_POT_INCREASED;
+  return true;
+ }
+
+ if (potentiometerNewValue < potentiometerLastValue)
+ {
+  potentiometerLastValue = potentiometerNewValue;
+  new_event = EV_POT_DECREASED;
+  return true;
+ }
+
+ return false;
+}
+
+bool message_sensor()
+{
+    if(!json_queue_is_empty(&messagesQueue)){
+        new_event = EV_MESSAGE_RECEIVED;
         return true;
     }
-
-    if (potentiometerNewValue < potentiometerLastValue)
-    {
-        potentiometerLastValue = potentiometerNewValue;
-        new_event = EV_POT_DECREASED;
-        return true;
-    }
-
     return false;
 }
 
