@@ -24,9 +24,10 @@ bool isBelowTime(int frecuency)
 void showHourTimerLCDCallback(void *)
 {
  getLocalTime(&timeinfo, GET_TIME_TIMEOUT); // Actualiza la hora
- char mensaje[LCD_COLUMNS * LCD_ROWS];
+ char mensaje[LCD_COLUMNS * LCD_ROWS] = {0};
 
- char payload[200];
+
+ char payload[300] = {0};
 
  sprintf(payload, "{\"value\":0, \"context\":{\"next_dose_time\":\"%s\"}}", mensaje);
 
@@ -37,10 +38,9 @@ void showHourTimerLCDCallback(void *)
  else
  {
   snprintf(mensaje, sizeof(mensaje), "Next dose: \n%02d:%02d %s", schedule[nextPeriod].tm_hour, schedule[nextPeriod].tm_min, weekDays[schedule[nextPeriod].tm_wday]);
-  
   long now = millis();
   if (now - last_time > 50000) {
-    snprintf(payload, sizeof(payload), "%02d:%02d %s", schedule[nextPeriod].tm_hour, schedule[nextPeriod].tm_min, weekDays[schedule[nextPeriod].tm_wday]);
+    snprintf(payload, sizeof(payload), "%02d:%02d %s", schedule[nextPeriod].tm_hour, schedule[nextPeriod].tm_min, weekDays[schedule[nextPeriod].tm_wday]);   
     mqtt_publish_message(next_dose_time_topic, NO_VALUE, payload);
     last_time = now;
   }
