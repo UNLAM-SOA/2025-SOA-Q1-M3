@@ -28,19 +28,20 @@ void showHourTimerLCDCallback(void *)
 
  sprintf(payload, "{\"value\":0, \"context\":{\"next_dose_time\":\"%s\"}}", mensaje);
 
- if (isBelowTlast_dose_timeime(LCD_BLINK_TIME))
+ if (isBelowTime(LCD_BLINK_TIME))
  {
   snprintf(mensaje, sizeof(mensaje), "Time: %02d:%02d", timeinfo.tm_hour, timeinfo.tm_min);
  }
  else
  {
   snprintf(mensaje, sizeof(mensaje), "Next dose: \n%02d:%02d %s", schedule[nextPeriod].tm_hour, schedule[nextPeriod].tm_min, weekDays[schedule[nextPeriod].tm_wday]);
-  
+
   long now = millis();
-  if (now - last_time > 10000) {
-    snprintf(payload, sizeof(mensaje), "Next dose: \n%02d:%02d %s", schedule[nextPeriod].tm_hour, schedule[nextPeriod].tm_min, weekDays[schedule[nextPeriod].tm_wday]);
-    mqtt_publish(next_dose_time_topic, payload);
-    last_time = now;
+  if (now - last_time > 10000)
+  {
+   snprintf(payload, sizeof(mensaje), "Next dose: \n%02d:%02d %s", schedule[nextPeriod].tm_hour, schedule[nextPeriod].tm_min, weekDays[schedule[nextPeriod].tm_wday]);
+   mqtt_publish(next_dose_time_topic, payload);
+   last_time = now;
   }
  }
 
@@ -103,5 +104,53 @@ void notifyDoseUnnavailable(void *)
  while (1)
  {
   waitForSemaphore(notifyDoseUnavailableCallback, NULL, noPillNotificationSemaphore);
+ }
+}
+
+void scanAllPills(void *)
+{
+ while (1)
+ {
+  ulTaskNotifyTake(pdTRUE, portMAX_DELAY); // Espera a que se notifique la tarea
+  Serial.println("Scanning all pills...");
+  short scanStatus[MAX_PILLS_PER_DAY * MAX_DAYS] = {0}; // Array para almacenar el estado de cada pastilla
+  startMotorRight();
+  for (int i = 0; i < MAX_DAYS; i++)
+  {
+   Serial.println("aca0");
+   ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+   Serial.print("Scanning day ");
+   Serial.println(i + 1);
+   stopMotor();
+   vTaskDelay(100); // Espera un poco para evitar lecturas erróneas
+   Serial.println("aca1");
+   for (int j = 0; j < MAX_PILLS_PER_DAY; j++)
+   {
+    Serial.println("aca2");
+    short value = presenceSensorsArray[j]();
+    scanStatus[i * MAX_PILLS_PER_DAY + j] = value > PRECENSE_THRESHOLD ? 1 : 0; // 1 si hay pastilla, 0 si no
+   }
+   Serial.println("aca3");
+   startMotorRight();
+   Serial.println("aca4");
+  }
+  startMotorLeft();
+  for (int i = 0; i < MAX_DAYS; i++)
+  {
+   ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+   Serial.print("Returning from day ");
+   Serial.println(i + 1);
+  }
+  stopMotor();
+  // Send scanStatus to MQTT
+  // TODO
+  Serial.print("Scan Status: ");
+  for (int i = 0; i < MAX_PILLS_PER_DAY * MAX_DAYS; i++)
+  {
+   Serial.print(scanStatus[i]);
+   if (i < MAX_PILLS_PER_DAY * MAX_DAYS - 1)
+    Serial.print(", ");
+  }
+  Serial.println();
  }
 }

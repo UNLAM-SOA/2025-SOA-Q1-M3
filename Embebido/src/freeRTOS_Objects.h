@@ -3,6 +3,7 @@
 #define MAX_EVENTS_QUEUE 1
 
 TimerHandle_t xTimer = NULL;
+TaskHandle_t limitSwitchTaskHandler = NULL;
 QueueHandle_t timeEventsQueue = NULL;
 QueueHandle_t buttonEventsQueue = NULL;
 SemaphoreHandle_t showTimerSemaphore = NULL;

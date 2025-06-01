@@ -17,7 +17,8 @@ void initialize()
 
  fisicalSetup();
  attachInterrupt(LIMIT_SWITCH_PIN, detectMovingLimitSwitch, RISING);
- attachInterrupt(BUTTON_PIN, detectButtonPress, RISING); // Configura la interrupción para el botón
+ attachInterrupt(LIMIT_SWITCH_PIN, detectLimitSwitch, FALLING); // Configura la interrupción para el interruptor de límite
+ attachInterrupt(BUTTON_PIN, detectButtonPress, RISING);        // Configura la interrupción para el botón
  setupWifi();
  setupTime();
 
@@ -30,7 +31,7 @@ void initialize()
  xTaskCreate(showHourTimerLCD, "showHourTimerLCD", 2048, NULL, 1, NULL);
  xTaskCreate(notifyDoseAvailable, "notifyDoseAvailable", 2048, NULL, 1, NULL);
  xTaskCreate(notifyDoseUnnavailable, "notifyDoseUnnavailable", 2048, NULL, 1, NULL);
-
+ xTaskCreate(scanAllPills, "scanAllPills", 8192, NULL, 1, &limitSwitchTaskHandler);
  mqtt_setup();
 }
 

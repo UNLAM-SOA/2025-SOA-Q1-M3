@@ -92,6 +92,7 @@ void handleTimerCallback(TimerHandle_t xTimer)
 
 volatile unsigned long lastInterruptTime = 0;
 volatile unsigned long lastButtonPressTime = 0;
+volatile unsigned long lastLimitSwitchTime = 0;
 void detectMovingLimitSwitch()
 {
  unsigned long interruptTime = millis();
@@ -115,6 +116,15 @@ void detectButtonPress()
                                                  //  }
 }
 
+void detectLimitSwitch()
+{
+ unsigned long currentTime = millis();
+ if (currentTime - lastLimitSwitchTime > 500) // Check if enough time has passed since the last limit switch detection
+ {
+  xTaskNotifyGive(limitSwitchTaskHandler); // Update the last limit switch time
+  lastLimitSwitchTime = currentTime;       // Notify the limit switch task
+ }
+}
 void queueSetup()
 {
  timeEventsQueue = xQueueCreate(MAX_EVENTS_QUEUE, sizeof(events));

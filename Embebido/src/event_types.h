@@ -151,6 +151,7 @@ bool button_1_sensor()
   {
    new_event = EV_BUTTON_1_LONG_PRESS;
    previousButtonState = buttonState;
+   xTaskNotifyGive(limitSwitchTaskHandler);
    return true;
   }
   else // Short press
