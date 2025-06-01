@@ -30,9 +30,9 @@ void initialize()
  queueSetup();
  semaphoreSetup();
 
- xTaskCreate(showHourTimerLCD, "showHourTimerLCD", 2048, NULL, 1, NULL);
- xTaskCreate(notifyDoseAvailable, "notifyDoseAvailable", 2048, NULL, 1, NULL);
- xTaskCreate(notifyDoseUnnavailable, "notifyDoseUnnavailable", 2048, NULL, 1, NULL);
+ xTaskCreate(showHourTimerLCD, "showHourTimerLCD", 4096, NULL, 1, NULL);
+ //xTaskCreate(notifyDoseAvailable, "notifyDoseAvailable", 4096, NULL, 1, NULL);
+ //xTaskCreate(notifyDoseUnnavailable, "notifyDoseUnnavailable", 4096, NULL, 1, NULL);
 
  mqtt_setup();
 }
@@ -87,9 +87,15 @@ void awaitingTimer() {
   // notification until it changes from awaiting to moving
 
   if (!awaiting) {
+    Serial.println("reservando espacio");
     char payload[50];
-    snprintf(payload, sizeof(payload), "Awaiting timer");
+    Serial.println("copiando awaiting timer hacia payload");
+    strncpy(payload, "Awaiting timer", 20);
+    Serial.println("copiado");
+    //snprintf(payload, sizeof(payload), "Awaiting timer");
+    Serial.println("Enviando payload");
     mqtt_publish_message(actual_status_topic, AWAITING, payload);
+    Serial.println("payload enviado");
     awaiting = true;
   }
 
@@ -151,6 +157,7 @@ void noScheduleSet() {
   DebugPrint("No schedule set...");
   xSemaphoreGive(showTimerSemaphore);
 }
+
 void reanudeCycle() { xSemaphoreGive(showTimerSemaphore); }
 void pauseCycle() {
   xSemaphoreTake(showTimerSemaphore, 0);
