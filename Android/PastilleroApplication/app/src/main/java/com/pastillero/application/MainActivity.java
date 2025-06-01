@@ -6,35 +6,41 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 
-import androidx.annotation.RequiresApi;
+
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.pastillero.application.mqtt.ConfigMQTT;
-import com.pastillero.application.mqtt.MqttConnectionCallback;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+
+
 import com.pastillero.application.mqtt.MqttHandler;
 import com.pastillero.application.mqtt.MqttService;
 
-import java.util.UUID;
+
 
 public class MainActivity extends AppCompatActivity {
 
-    private MqttHandler mqttHandler;
     private LocalBroadcastManager broadcastManager;
 
     private TextView nextDoseTimeText;
     private TextView actualStatusText;
 
+    private EditText volumeInput;
+
+    private Button setVolumeButton;
+
+    private Button activateBuzzerButton;
+    private Button deactivateBuzzerButton;
+
+    private Button goToBuzzerControlButton;
     public IntentFilter filterReceiveNextDoseMessage;
     public IntentFilter filterReceiveActualStatusMessage;
     public IntentFilter filterReceivePillStatusMessage;
@@ -43,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
 
     private final NextDoseReceiver nextDoseReceiver = new NextDoseReceiver();
     private final ActualStatusReceiver actualStatusReceiver = new ActualStatusReceiver();
-    private final PillStatusReceiver pillStatusReceiver = new PillStatusReceiver();
 
 
     @Override
@@ -53,6 +58,18 @@ public class MainActivity extends AppCompatActivity {
 
         nextDoseTimeText = findViewById(R.id.next_dose_time);
         actualStatusText = findViewById(R.id.actual_status);
+
+        volumeInput = findViewById(R.id.volume_input);
+        setVolumeButton = findViewById(R.id.set_volume_button);
+        activateBuzzerButton = findViewById(R.id.activate_buzzer_button);
+        deactivateBuzzerButton = findViewById(R.id.deactivate_buzzer_button);
+
+        goToBuzzerControlButton = findViewById(R.id.buzzer_control_button);
+
+        goToBuzzerControlButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, BuzzerControlActivity.class);
+            startActivity(intent);
+        });
 
         broadcastManager = LocalBroadcastManager.getInstance(this);
 
@@ -74,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy(){
         broadcastManager.unregisterReceiver(nextDoseReceiver);
         broadcastManager.unregisterReceiver(actualStatusReceiver);
-        broadcastManager.unregisterReceiver(pillStatusReceiver);
         super.onDestroy();
     }
 
@@ -86,12 +102,10 @@ public class MainActivity extends AppCompatActivity {
     private void configBroadcastReceivers() {
         filterReceiveNextDoseMessage = new IntentFilter(MqttHandler.NEXT_DOSE_MESSAGE_RECEIVED);
         filterReceiveActualStatusMessage = new IntentFilter(MqttHandler.ACTUAL_STATUS_MESSAGE_RECEIVED);
-        filterReceivePillStatusMessage = new IntentFilter(MqttHandler.PILL_STATUS_MESSAGE_RECEIVED);
 
 
         broadcastManager.registerReceiver(nextDoseReceiver, filterReceiveNextDoseMessage);
         broadcastManager.registerReceiver(actualStatusReceiver, filterReceiveActualStatusMessage);
-        broadcastManager.registerReceiver(pillStatusReceiver, filterReceivePillStatusMessage);
         Log.i("Pastillero", "Registered receivers");
     }
 
@@ -140,19 +154,13 @@ public class MainActivity extends AppCompatActivity {
             actualStatusText.setText(message);
 
             if(value == 0) {
-                actualStatusText.setBackgroundColor(Color.GREEN);
+                actualStatusText.setTextColor(Color.RED);
             } else {
-                actualStatusText.setBackgroundColor(Color.WHITE);
+                actualStatusText.setTextColor(Color.rgb(59,59,26));
             }
         }
     }
 
-    public class PillStatusReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-
-        }
-    }
 
     private void loadLastKnownState(){
         android.content.SharedPreferences prefs = getSharedPreferences("PastilleroPrefs", Context.MODE_PRIVATE);
@@ -174,4 +182,16 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    // It creates an Intent to trigger the onStartCommand on the MQTT service
+    // so it publish the message using the service
+    // TODO: done for the 2nd deliverable
+    private void publishMessage(String topic, String message) {
+        Intent intent = new Intent(this, MqttService.class);
+        intent.setAction(MqttService.ACTION_PUBLISH);
+        intent.putExtra(MqttService.EXTRA_TOPIC, topic);
+        intent.putExtra(MqttService.EXTRA_MESSAGE, message);
+        startService(intent);
+    }
+
 }

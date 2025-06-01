@@ -14,11 +14,12 @@
 #define MAX_PILLS_PER_DAY 3
 #define MAX_PERIODS (MAX_PILLS_PER_DAY * MAX_DAYS)
 #define PRECENSE_THRESHOLD 100 // Valor de umbral para detectar la presencia de pastillas
+#define PONTECIOMETER_THRESHOLD 5
 #define NO_PILL_TOOKING -1
 #define LONG_PRESS_TIME 500 // Tiempo de presión larga en milisegundos
 
-#define ENABLE_PERIODICAL_TIME_EVENTS 0   // Para testear: Habilitar eventos de tiempo periódicos (0: deshabilitado, 1: habilitado)
-#define PERIODICAL_TIME_EVENTS_TIME 60000 // Para testear: Tiempo en milisegundos entre eventos de tiempo periódicos
+#define ENABLE_PERIODICAL_TIME_EVENTS 1   // Para testear: Habilitar eventos de tiempo periódicos (0: deshabilitado, 1: habilitado)
+#define PERIODICAL_TIME_EVENTS_TIME 10000 // Para testear: Tiempo en milisegundos entre eventos de tiempo periódicos
 enum events
 {
  EV_TIME_SUNDAY_MORNING,
@@ -204,14 +205,14 @@ bool potentiometer_sensor()
 {
  long potentiometerNewValue = readPotentiometer();
 
- if (potentiometerNewValue > potentiometerLastValue)
+ if (potentiometerNewValue > (potentiometerLastValue + PONTECIOMETER_THRESHOLD))
  {
   potentiometerLastValue = potentiometerNewValue;
   new_event = EV_POT_INCREASED;
   return true;
  }
 
- if (potentiometerNewValue < potentiometerLastValue)
+ if (potentiometerNewValue < (potentiometerLastValue - PONTECIOMETER_THRESHOLD))
  {
   potentiometerLastValue = potentiometerNewValue;
   new_event = EV_POT_DECREASED;

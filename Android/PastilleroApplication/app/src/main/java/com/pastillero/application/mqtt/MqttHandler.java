@@ -19,7 +19,6 @@ public class MqttHandler implements MqttCallback {
 
     public static final String NEXT_DOSE_MESSAGE_RECEIVED = "com.pastillero.application.mqtt.NEXT_DOSE_MESSAGE_RECEIVED";
     public static final String ACTUAL_STATUS_MESSAGE_RECEIVED = "com.pastillero.application.mqtt.ACTUAL_STATUS_MESSAGE_RECEIVED";
-    public static final String PILL_STATUS_MESSAGE_RECEIVED = "com.pastillero.application.mqtt.PILL_STATUS_MESSAGE_RECEIVED";
 
     public static final String CONNECTION_LOST = "com.pastillero.application.mqtt.CONNECTION_LOST";
 
@@ -72,6 +71,7 @@ public class MqttHandler implements MqttCallback {
             MqttMessage mqttMessage = new MqttMessage(message.getBytes());
             mqttMessage.setQos(2);
             client.publish(topic, mqttMessage);
+            Log.i("MQTT", "Message published " + message);
         } catch (Exception e) {
             Log.e("MQTT", e.getMessage());
         }
@@ -108,9 +108,6 @@ public class MqttHandler implements MqttCallback {
                 break;
             case ConfigMQTT.ACTUAL_STATUS_TOPIC:
                 actualStatusMessageReceived(payload);
-                break;
-            case ConfigMQTT.PILL_STATUS_TOPIC:
-                pillStatusMessageReceived(payload);
                 break;
             default:
                 Log.e("MQTT", "Topic not found");
@@ -163,9 +160,6 @@ public class MqttHandler implements MqttCallback {
         }
     }
 
-    private void pillStatusMessageReceived(String payload) {
-
-    }
 
     @Override
     public void deliveryComplete(IMqttDeliveryToken token) {

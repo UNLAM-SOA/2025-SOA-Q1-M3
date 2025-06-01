@@ -22,7 +22,7 @@
 #define PRESENCE_LED_3 12
 
 // Fines de carrera
-#define LIMIT_SWITCH_PIN 25
+#define LIMIT_SWITCH_PIN 23
 
 #define BUZZER_PIN 13
 #define POTENTIOMETER_PIN 33
@@ -135,7 +135,7 @@ void potentiometerSetup()
 
 void fisicalSetup()
 {
- pinMode(BUTTON_PIN, INPUT); // Configura el botón 1 como entrada
+ pinMode(BUTTON_PIN, INPUT_PULLDOWN); // Configura el botón 1 como entrada
 
  pinMode(PRESENCE_PIN_1, INPUT); // Configura el sensor de presencia 1 como entrada
  pinMode(PRESENCE_PIN_2, INPUT); // Configura el sensor de presencia 2 como entrada
@@ -145,7 +145,7 @@ void fisicalSetup()
  pinMode(PRESENCE_LED_2, OUTPUT); // Configura el LED del sensor de presencia 2 como salida
  pinMode(PRESENCE_LED_3, OUTPUT); // Configura el LED del sensor de presencia 3 como salida
 
- pinMode(LIMIT_SWITCH_PIN, INPUT); // Configura el fin de carrera 1 como entrada
+ pinMode(LIMIT_SWITCH_PIN, INPUT_PULLDOWN); // Configura el fin de carrera 1 como entrada
 
  pinMode(BUZZER_PIN, OUTPUT);       // Configura el zumbador como salida
  pinMode(POTENTIOMETER_PIN, INPUT); // Configura el potenciómetro como entrada
