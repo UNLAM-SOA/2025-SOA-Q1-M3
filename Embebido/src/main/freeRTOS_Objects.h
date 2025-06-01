@@ -13,10 +13,9 @@ extern SemaphoreHandle_t notificationSemaphore;
 extern SemaphoreHandle_t noPillNotificationSemaphore;
 
 void waitForSemaphore(void (*callback)(void *), void *params, SemaphoreHandle_t semaphore);
-// 🔹 Si IS_FISICAL está definido y es 1, entonces definiciones reales:
+
 #if IS_FISICAL
 
-// ✅ Definiciones reales
 TimerHandle_t xTimer = NULL;
 TaskHandle_t limitSwitchTaskHandler = NULL;
 QueueHandle_t timeEventsQueue = NULL;
