@@ -1,6 +1,7 @@
 #include "Drivers/SD_Driver.h"
 #include "timer_schedule.h"
 
+
 #define PATH_SCHEDULE "/schedule.csv"
 
 // Declaraciones anticipadas
@@ -12,6 +13,9 @@ void printCSVSchedule();
 
 void configSetup()
 {
+    setDefaultConfig();
+ /*
+
  setupSD();
  if (!SD.exists(PATH_SCHEDULE))
  {
@@ -23,6 +27,8 @@ void configSetup()
  {
   readCsvConfig();
  }
+
+ */
 }
 
 void setDefaultConfig()

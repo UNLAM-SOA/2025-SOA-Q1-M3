@@ -117,8 +117,8 @@ void detectButtonPress()
 
 void queueSetup()
 {
- timeEventsQueue = xQueueCreate(MAX_EVENTS_QUEUE, sizeof(events));
- buttonEventsQueue = xQueueCreate(MAX_EVENTS_QUEUE, sizeof(short));
+ timeEventsQueue = xQueueCreate(MAX_EVENTS, sizeof(events));
+ buttonEventsQueue = xQueueCreate(MAX_EVENTS, sizeof(short));
 }
 
 void semaphoreSetup()

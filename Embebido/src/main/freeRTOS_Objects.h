@@ -1,24 +1,15 @@
-#pragma once
+#ifndef FREERTOS_OBJECTS_H
+#define FREERTOS_OBJECTS_H
 
-#define MAX_EVENTS_QUEUE 1
+extern TimerHandle_t xTimer;
+extern QueueHandle_t timeEventsQueue;
+extern QueueHandle_t buttonEventsQueue;
+extern SemaphoreHandle_t showTimerSemaphore;
+extern SemaphoreHandle_t lcdMutex;
+extern SemaphoreHandle_t notificationSemaphore;
+extern SemaphoreHandle_t noPillNotificationSemaphore;
 
-TimerHandle_t xTimer = NULL;
-QueueHandle_t timeEventsQueue = NULL;
-QueueHandle_t buttonEventsQueue = NULL;
-SemaphoreHandle_t showTimerSemaphore = NULL;
-SemaphoreHandle_t lcdMutex;
-SemaphoreHandle_t notificationSemaphore;
-SemaphoreHandle_t noPillNotificationSemaphore;
+void waitForSemaphore(void (*callback)(void *), void *params, SemaphoreHandle_t semaphore);
 
-void waitForSemaphore(void (*callback)(void *), void *params, SemaphoreHandle_t semaphore)
-{
- if (uxSemaphoreGetCount(semaphore) > 0)
- {
-  callback(params);
- }
- else
- {
-  xSemaphoreTake(semaphore, portMAX_DELAY); // Wait for the semaphore to be available
-  xSemaphoreGive(semaphore);                // Release the semaphore
- }
-}
+#endif
+

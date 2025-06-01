@@ -41,7 +41,6 @@ void mqtt_setup()
 
 void mqtt_reconnect() 
 {
-
   char clientId[50];
 
   while (!client.connected()) {

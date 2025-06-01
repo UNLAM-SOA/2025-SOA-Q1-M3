@@ -1,4 +1,5 @@
 #pragma once
+
 #include "./Drivers/MQTT_Driver.h"
 #include "Drivers/Queue.h"
 #include "config.h"
@@ -7,33 +8,33 @@
 #include "freeRTOS_Tasks.h"
 #include "setup_utils.h"
 
+
 typedef void (*action)();
 
 // Actions
-void initialize() {
+void initialize()
+{
 
-  // Lee archivo con horarios y dias
-  configSetup();
+ // Lee archivo con horarios y dias
+ configSetup();
 
-  fisicalSetup();
-  attachInterrupt(LIMIT_SWITCH_PIN, detectMovingLimitSwitch, RISING);
-  attachInterrupt(BUTTON_PIN, detectButtonPress,
-                  RISING); // Configura la interrupción para el botón
-  setupWifi();
-  setupTime();
+ fisicalSetup();
+ attachInterrupt(LIMIT_SWITCH_PIN, detectMovingLimitSwitch, RISING);
+ attachInterrupt(BUTTON_PIN, detectButtonPress, RISING); // Configura la interrupción para el botón
+ setupWifi();
+ setupTime();
 
-  // Calcula el proximo horario y dia
-  createNewScheduledTimer();
+ // Calcula el proximo horario y dia
+ createNewScheduledTimer();
 
-  queueSetup();
-  semaphoreSetup();
+ queueSetup();
+ semaphoreSetup();
 
-  xTaskCreate(showHourTimerLCD, "showHourTimerLCD", 2048, NULL, 1, NULL);
-  xTaskCreate(notifyDoseAvailable, "notifyDoseAvailable", 2048, NULL, 1, NULL);
-  xTaskCreate(notifyDoseUnnavailable, "notifyDoseUnnavailable", 2048, NULL, 1,
-              NULL);
+ xTaskCreate(showHourTimerLCD, "showHourTimerLCD", 2048, NULL, 1, NULL);
+ xTaskCreate(notifyDoseAvailable, "notifyDoseAvailable", 2048, NULL, 1, NULL);
+ xTaskCreate(notifyDoseUnnavailable, "notifyDoseUnnavailable", 2048, NULL, 1, NULL);
 
-  mqtt_setup();
+ mqtt_setup();
 }
 
 void noScheduleSet();
@@ -48,6 +49,7 @@ void doseSkipped();
 void reanudeCycle();
 void pauseCycle();
 void processMessage();
+
 
 void error();
 void none();
@@ -179,4 +181,5 @@ void processMessage() {
       Serial.print("Buzzer value not recognized");
     }
   }
+
 }

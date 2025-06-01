@@ -1,7 +1,8 @@
-#include "freeRTOS_Objects.h"
+
 #include "timer_schedule.h"
 #include "setup_utils.h"
 #include "fisical.h"
+#include "freeRTOS_Objects.h"
 #include "./Drivers/MQTT_Driver.h"
 
 #define GET_TIME_TIMEOUT 10
@@ -11,7 +12,7 @@
 #define NOTIFICATION_UNNAVAILABLE_ALERT 500
 
 
-long last_time;
+long last_time = 0;
 
 void (*setLeds[MAX_PILLS_PER_DAY])(short) = {setLedPresence_TM, setLedPresence_TT, setLedPresence_TN};
 
