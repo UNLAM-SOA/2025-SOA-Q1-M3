@@ -91,10 +91,11 @@ public class BuzzerControlActivity extends AppCompatActivity implements SensorEv
     private void toggleBuzzer(){
         try {
             JSONObject message = new JSONObject();
-            JSONObject actualValues = new JSONObject();
-            actualValues.put("value", isBuzzerActive ? 0 : 1);
-            message.put("buzzer", actualValues);
-            publishMessage(actualValues.toString());
+            JSONObject context = new JSONObject();
+            context.put("type", "active");
+            message.put("value", isBuzzerActive ? 0 : 1);
+            message.put("context", context);
+            publishMessage(message.toString());
             isBuzzerActive = !isBuzzerActive;
             updateStatus();
         } catch (JSONException e) {
