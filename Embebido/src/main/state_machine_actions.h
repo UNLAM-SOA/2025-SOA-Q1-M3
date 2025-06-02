@@ -8,33 +8,34 @@
 #include "freeRTOS_Tasks.h"
 #include "setup_utils.h"
 
-
 typedef void (*action)();
 
 // Actions
 void initialize()
 {
 
- // Lee archivo con horarios y dias
- configSetup();
+  // Lee archivo con horarios y dias
+  configSetup();
 
- fisicalSetup();
- attachInterrupt(LIMIT_SWITCH_PIN, detectMovingLimitSwitch, RISING);
- attachInterrupt(BUTTON_PIN, detectButtonPress, RISING); // Configura la interrupción para el botón
- setupWifi();
- setupTime();
+  fisicalSetup();
+  attachInterrupt(LIMIT_SWITCH_PIN, detectMovingLimitSwitch, RISING);
+  attachInterrupt(LIMIT_SWITCH_PIN, detectLimitSwitch, FALLING); // Configura la interrupción para el interruptor de límite
+  attachInterrupt(BUTTON_PIN, detectButtonPress, RISING);        // Configura la interrupción para el botón
+  setupWifi();
+  setupTime();
 
- // Calcula el proximo horario y dia
- createNewScheduledTimer();
+  // Calcula el proximo horario y dia
+  createNewScheduledTimer();
 
- queueSetup();
- semaphoreSetup();
+  queueSetup();
+  semaphoreSetup();
 
- xTaskCreate(showHourTimerLCD, "showHourTimerLCD", 4096, NULL, 1, NULL);
- //xTaskCreate(notifyDoseAvailable, "notifyDoseAvailable", 4096, NULL, 1, NULL);
- //xTaskCreate(notifyDoseUnnavailable, "notifyDoseUnnavailable", 4096, NULL, 1, NULL);
+  xTaskCreate(showHourTimerLCD, "showHourTimerLCD", 2048, NULL, 1, NULL);
+  xTaskCreate(notifyDoseAvailable, "notifyDoseAvailable", 2048, NULL, 1, NULL);
+  xTaskCreate(notifyDoseUnnavailable, "notifyDoseUnnavailable", 2048, NULL, 1, NULL);
+  xTaskCreate(scanAllPills, "scanAllPills", 8192, NULL, 1, &limitSwitchTaskHandler);
 
- mqtt_setup();
+  mqtt_setup();
 }
 
 void noScheduleSet();
@@ -50,7 +51,6 @@ void reanudeCycle();
 void pauseCycle();
 void processMessage();
 
-
 void error();
 void none();
 
@@ -59,14 +59,16 @@ void none() {}
 
 bool awaiting = false;
 
-void modifyVolume() {
+void modifyVolume()
+{
   setVolumeBuzzer(potentiometerLastValue);
 
   Serial.print("New volume: ");
   DebugPrint(potentiometerLastValue);
 }
 
-void doseTaken() {
+void doseTaken()
+{
   xSemaphoreTake(noPillNotificationSemaphore, 0);
   xSemaphoreTake(notificationSemaphore, 0);
   setLeds[objetivePeriod](LOW);
@@ -74,58 +76,57 @@ void doseTaken() {
   writeLCD("Dose taken\nReturning...");
   startMotorLeft();
 }
-void stopReturning() {
+void stopReturning()
+{
   stopMotor();
   xSemaphoreGive(showTimerSemaphore);
   objetiveDay = NO_PILL_TOOKING;
   objetivePeriod = NO_PILL_TOOKING;
   DebugPrint("Stop returning...");
 }
-void awaitingTimer() {
+void awaitingTimer()
+{
 
   // TODO: do we need to send it regularly? If the esp was connected before the android app, it won't receive the
   // notification until it changes from awaiting to moving
 
-  if (!awaiting) {
-    Serial.println("reservando espacio");
+  if (!awaiting)
+  {
     char payload[50];
-    Serial.println("copiando awaiting timer hacia payload");
-    strncpy(payload, "Awaiting timer", 20);
-    Serial.println("copiado");
-    //snprintf(payload, sizeof(payload), "Awaiting timer");
-    Serial.println("Enviando payload");
+    snprintf(payload, sizeof(payload), "Awaiting timer");
     mqtt_publish_message(actual_status_topic, AWAITING, payload);
-    Serial.println("payload enviado");
     awaiting = true;
   }
 
-  
   DebugPrint("Awaiting timer...");
   xSemaphoreGive(showTimerSemaphore);
 }
-void moving() {
+void moving()
+{
   DebugPrint("Moving...");
   xSemaphoreTake(showTimerSemaphore, 0);
   writeLCD("Moving...");
 
-
-  if(awaiting){
-   char payload[50];
-   snprintf(payload, sizeof(payload), "Time to take the pill...");
-   mqtt_publish_message(actual_status_topic, TIME_TO_TAKE_PILL, payload);
-   awaiting = false;
+  if (awaiting)
+  {
+    char payload[50];
+    snprintf(payload, sizeof(payload), "Time to take the pill...");
+    mqtt_publish_message(actual_status_topic, TIME_TO_TAKE_PILL, payload);
+    awaiting = false;
   }
-  
+
   setDayAndPeriod();
   startMotorRight();
 }
-void scanning() {
+void scanning()
+{
   setLeds[objetivePeriod](LOW);
   stopBuzzer();
   stopMotor();
   DebugPrint("Scanning");
 }
-void pillDetected() {
+void pillDetected()
+{
   char payload[50];
   snprintf(payload, sizeof(payload), "Pill detected");
   mqtt_publish_message(pill_status_topic, 0, payload);
@@ -133,14 +134,16 @@ void pillDetected() {
   xSemaphoreGive(notificationSemaphore);
   DebugPrint("Pill detected...");
 }
-void noPillDetected() {
+void noPillDetected()
+{
   char payload[50];
   snprintf(payload, sizeof(payload), "No pill detected");
   mqtt_publish_message(pill_status_topic, 0, payload);
   DebugPrint("No pill detected...");
   xSemaphoreGive(noPillNotificationSemaphore);
 }
-void doseSkipped() {
+void doseSkipped()
+{
   xSemaphoreTake(notificationSemaphore, 0);
   xSemaphoreTake(noPillNotificationSemaphore, 0);
   setLeds[objetivePeriod](LOW);
@@ -149,35 +152,44 @@ void doseSkipped() {
   writeLCD("Dose skipped\nReturning...");
   startMotorLeft();
 }
-void settingSchedule() {
+void settingSchedule()
+{
   DebugPrint("Setting schedule...");
   xSemaphoreGive(showTimerSemaphore);
 }
-void noScheduleSet() {
+void noScheduleSet()
+{
   DebugPrint("No schedule set...");
   xSemaphoreGive(showTimerSemaphore);
 }
 
 void reanudeCycle() { xSemaphoreGive(showTimerSemaphore); }
-void pauseCycle() {
+void pauseCycle()
+{
   xSemaphoreTake(showTimerSemaphore, 0);
   writeLCD("Cycle paused\nPress button to resume...");
 }
-void processMessage() {
+void processMessage()
+{
   StaticJsonDocument<JSON_DOC_SIZE> doc;
 
   json_queue_dequeue(&messagesQueue, doc);
 
-  if (doc.containsKey("volume")) {
+  if (doc.containsKey("volume"))
+  {
     long value = doc["volume"]["value"];
 
-    if (value >= 0 && value <= 100) {
+    if (value >= 0 && value <= 100)
+    {
       setVolumeBuzzer(value);
     }
-  } else if (doc.containsKey("buzzer")) {
+  }
+  else if (doc.containsKey("buzzer"))
+  {
     long value = doc["buzzer"]["value"];
 
-    switch (value) {
+    switch (value)
+    {
     case 0:
       stopBuzzer();
       break;
@@ -188,5 +200,8 @@ void processMessage() {
       Serial.print("Buzzer value not recognized");
     }
   }
-
+  else if (doc.containsKey("scan"))
+  {
+    xTaskNotifyGive(limitSwitchTaskHandler);
+  }
 }

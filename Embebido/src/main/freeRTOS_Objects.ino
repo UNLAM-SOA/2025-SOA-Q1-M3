@@ -1,6 +1,7 @@
 #include "freeRTOS_Objects.h"
 
 TimerHandle_t xTimer = NULL;
+TaskHandle_t limitSwitchTaskHandler = NULL;
 QueueHandle_t timeEventsQueue = NULL;
 QueueHandle_t buttonEventsQueue = NULL;
 SemaphoreHandle_t showTimerSemaphore = NULL;
