@@ -86,11 +86,11 @@ void get_new_event()
 void state_machine()
 {
 
-    //if(!client.connected()) {
-    //    mqtt_reconnect();
-    //}
+    if(!client.connected()) {
+        mqtt_reconnect();
+    }
 
-    //client.loop();
+    client.loop();
 
     get_new_event();
  if ((new_event >= 0) && (new_event < MAX_EVENTS) && (current_state >= 0) && (current_state < MAX_STATES))

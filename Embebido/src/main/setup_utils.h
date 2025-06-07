@@ -13,8 +13,8 @@
 #define DEBOUNCE_SECONDS 200
 
 //const char *ssid = "Wokwi-GUEST";
-const char *ssid = "CLAROVLG";
-const char *password = "F6BCA8C4";
+const char *ssid = "iPhone de Mateo";
+const char *password = "deesta15";
 
 const char *ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = GMT_DIFFERENCE * HOUR_TO_SECONDS;

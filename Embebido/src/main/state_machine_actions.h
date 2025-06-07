@@ -31,8 +31,8 @@ void initialize()
  semaphoreSetup();
 
  xTaskCreate(showHourTimerLCD, "showHourTimerLCD", 4096, NULL, 1, NULL);
- //xTaskCreate(notifyDoseAvailable, "notifyDoseAvailable", 4096, NULL, 1, NULL);
- //xTaskCreate(notifyDoseUnnavailable, "notifyDoseUnnavailable", 4096, NULL, 1, NULL);
+ xTaskCreate(notifyDoseAvailable, "notifyDoseAvailable", 4096, NULL, 1, NULL);
+ xTaskCreate(notifyDoseUnnavailable, "notifyDoseUnnavailable", 4096, NULL, 1, NULL);
 
  mqtt_setup();
 }
