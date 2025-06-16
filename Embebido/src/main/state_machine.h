@@ -85,7 +85,6 @@ void get_new_event()
 
 void state_machine()
 {
-
     if (!client.connected())
     {
         mqtt_reconnect();

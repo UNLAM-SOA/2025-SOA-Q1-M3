@@ -75,8 +75,8 @@ void mqtt_publish_message(const char *topic, int value, const char *context = nu
   Serial.println("Sending message: " + buffer );
 
   bool published = client.publish(topic, buffer.c_str());
-
-
+  Serial.print("SEND STATE:  ");
+  Serial.println(published);
 }
 
 void callback(char *topic, byte *payload, unsigned int length)

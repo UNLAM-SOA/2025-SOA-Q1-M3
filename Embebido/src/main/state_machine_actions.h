@@ -34,7 +34,6 @@ void initialize()
  xTaskCreate(notifyDoseAvailable, "notifyDoseAvailable", 2048, NULL, 1, NULL);
  xTaskCreate(notifyDoseUnnavailable, "notifyDoseUnnavailable", 2048, NULL, 1, NULL);
  xTaskCreate(scanAllPills, "scanAllPills", 8192, NULL, 1, &limitSwitchTaskHandler);
-
  mqtt_setup();
 }
 
@@ -175,6 +174,7 @@ void processMessage()
 
  json_queue_dequeue(&messagesQueue, doc);
 
+<<<<<<< HEAD
  if (doc.containsKey("context"))
  {
   JsonObject context = doc["context"];
@@ -187,26 +187,56 @@ void processMessage()
    {
     setVolumeBuzzer(value);
    }
-  }
-  else if (type == "buzzer")
-  {
-   long value = doc["value"];
-
-   switch (value)
+   == == == =
+                if (doc.containsKey("context"))
    {
-   case 0:
-    stopBuzzer();
-    break;
-   case 1:
-    startBuzzer();
-    break;
-   default:
-    Serial.print("Buzzer value not recognized");
+    JsonObject context = doc["context"];
+    String type = context["type"];
+
+    if (type == "volume")
+    {
+     long value = doc["value"];
+     if (value >= 0 && value <= 100)
+     {
+      setVolumeBuzzer(value);
+     }
+    }
+    else if (type == "buzzer")
+    {
+     long value = doc["value"];
+     switch (value)
+     {
+     case 0:
+      stopBuzzer();
+      break;
+     case 1:
+      startBuzzer();
+      break;
+     default:
+      Serial.print("Buzzer value not recognized");
+     }
+    }
+>>>>>>> main
+   }
+   else if (type == "buzzer")
+   {
+    long value = doc["value"];
+
+    switch (value)
+    {
+    case 0:
+     stopBuzzer();
+     break;
+    case 1:
+     startBuzzer();
+     break;
+    default:
+     Serial.print("Buzzer value not recognized");
+    }
+   }
+   else if (type == "scan")
+   {
+    xTaskNotifyGive(limitSwitchTaskHandler);
    }
   }
-  else if (type == "scan")
-  {
-   xTaskNotifyGive(limitSwitchTaskHandler);
-  }
  }
-}
