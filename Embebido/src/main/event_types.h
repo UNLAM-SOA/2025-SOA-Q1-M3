@@ -121,12 +121,12 @@ bool movingForward = true; // It starts moving forward
 short (*presenceSensorsArray[MAX_PILLS_PER_DAY])() = {readPresenceSensor_TM, readPresenceSensor_TT, readPresenceSensor_TN};
 short limitSwitchPassed = 0; // How many limit switches have been passed
 long lct_time = 0;           // Last cycle time
-bool firstTime = False bool time_sensor()
+
+bool time_sensor()
 {
-<<<<<<< HEAD
     if (ENABLE_PERIODICAL_TIME_EVENTS) // If periodic time events are enabled
     {
-        if (millis() - lct_time > PERIODICAL_TIME_EVENTS_TIME) // If the time since the last event is greater than the defined time
+        if ((millis() - lct_time > PERIODICAL_TIME_EVENTS_TIME)) // If the time since the last event is greater than the defined time
         {
             lct_time = millis();                // Update the last cycle time
             new_event = EV_TIME_THURSDAY_NIGHT; // Set the event to continue
