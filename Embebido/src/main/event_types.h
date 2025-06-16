@@ -18,45 +18,45 @@
 #define NO_PILL_TOOKING -1
 #define LONG_PRESS_TIME 500 // Tiempo de presión larga en milisegundos
 
-#define ENABLE_PERIODICAL_TIME_EVENTS 1   // Para testear: Habilitar eventos de tiempo periódicos (0: deshabilitado, 1: habilitado)
+#define ENABLE_PERIODICAL_TIME_EVENTS 0   // Para testear: Habilitar eventos de tiempo periódicos (0: deshabilitado, 1: habilitado)
 #define PERIODICAL_TIME_EVENTS_TIME 10000 // Para testear: Tiempo en milisegundos entre eventos de tiempo periódicos
 enum events
 {
-    EV_TIME_SUNDAY_MORNING,
-    EV_TIME_SUNDAY_AFTERNOON,
-    EV_TIME_SUNDAY_NIGHT,
-    EV_TIME_MONDAY_MORNING,
-    EV_TIME_MONDAY_AFTERNOON,
-    EV_TIME_MONDAY_NIGHT,
-    EV_TIME_TUESDAY_MORNING,
-    EV_TIME_TUESDAY_AFTERNOON,
-    EV_TIME_TUESDAY_NIGHT,
-    EV_TIME_WEDNESDAY_MORNING,
-    EV_TIME_WEDNESDAY_AFTERNOON,
-    EV_TIME_WEDNESDAY_NIGHT,
-    EV_TIME_THURSDAY_MORNING,
-    EV_TIME_THURSDAY_AFTERNOON,
-    EV_TIME_THURSDAY_NIGHT,
-    EV_TIME_FRIDAY_MORNING,
-    EV_TIME_FRIDAY_AFTERNOON,
-    EV_TIME_FRIDAY_NIGHT,
-    EV_TIME_SATURDAY_MORNING,
-    EV_TIME_SATURDAY_AFTERNOON,
-    EV_TIME_SATURDAY_NIGHT,
-    EV_BUTTON_1_TAP,
-    EV_BUTTON_2_TAP,
-    EV_BUTTON_3_TAP,
-    EV_BUTTON_1_LONG_PRESS,
-    EV_BUTTON_2_LONG_PRESS,
-    EV_BUTTON_3_LONG_PRESS,
-    EV_POT_INCREASED,
-    EV_POT_DECREASED,
-    EV_MESSAGE_RECEIVED,
-    EV_LIMIT_SWITCH_MOVING,
-    EV_LIMIT_SWITCH_START,
-    EV_PILL_DETECTED,
-    EV_PILL_NOT_DETECTED,
-    EV_CONT,
+ EV_TIME_SUNDAY_MORNING,
+ EV_TIME_SUNDAY_AFTERNOON,
+ EV_TIME_SUNDAY_NIGHT,
+ EV_TIME_MONDAY_MORNING,
+ EV_TIME_MONDAY_AFTERNOON,
+ EV_TIME_MONDAY_NIGHT,
+ EV_TIME_TUESDAY_MORNING,
+ EV_TIME_TUESDAY_AFTERNOON,
+ EV_TIME_TUESDAY_NIGHT,
+ EV_TIME_WEDNESDAY_MORNING,
+ EV_TIME_WEDNESDAY_AFTERNOON,
+ EV_TIME_WEDNESDAY_NIGHT,
+ EV_TIME_THURSDAY_MORNING,
+ EV_TIME_THURSDAY_AFTERNOON,
+ EV_TIME_THURSDAY_NIGHT,
+ EV_TIME_FRIDAY_MORNING,
+ EV_TIME_FRIDAY_AFTERNOON,
+ EV_TIME_FRIDAY_NIGHT,
+ EV_TIME_SATURDAY_MORNING,
+ EV_TIME_SATURDAY_AFTERNOON,
+ EV_TIME_SATURDAY_NIGHT,
+ EV_BUTTON_1_TAP,
+ EV_BUTTON_2_TAP,
+ EV_BUTTON_3_TAP,
+ EV_BUTTON_1_LONG_PRESS,
+ EV_BUTTON_2_LONG_PRESS,
+ EV_BUTTON_3_LONG_PRESS,
+ EV_POT_INCREASED,
+ EV_POT_DECREASED,
+ EV_MESSAGE_RECEIVED,
+ EV_LIMIT_SWITCH_MOVING,
+ EV_LIMIT_SWITCH_START,
+ EV_PILL_DETECTED,
+ EV_PILL_NOT_DETECTED,
+ EV_CONT,
 } new_event = EV_CONT;
 
 String events_s[] = {
@@ -124,134 +124,130 @@ long lct_time = 0;           // Last cycle time
 
 bool time_sensor()
 {
-    if (ENABLE_PERIODICAL_TIME_EVENTS) // If periodic time events are enabled
-    {
-        if ((millis() - lct_time > PERIODICAL_TIME_EVENTS_TIME)) // If the time since the last event is greater than the defined time
-        {
-            lct_time = millis();                // Update the last cycle time
-            new_event = EV_TIME_THURSDAY_NIGHT; // Set the event to continue
-            return true;
-        }
-    }
-    int queueValue;
-    if (timeEventsQueue != NULL && xQueueReceive(timeEventsQueue, &queueValue, 0) == pdTRUE) // If there is a value in the queue
-    {
-        new_event = (events)queueValue;
-        return true;
-    }
-    return false;
+ if (ENABLE_PERIODICAL_TIME_EVENTS) // If periodic time events are enabled
+ {
+  if ((millis() - lct_time > PERIODICAL_TIME_EVENTS_TIME)) // If the time since the last event is greater than the defined time
+  {
+   lct_time = millis();                // Update the last cycle time
+   new_event = EV_TIME_THURSDAY_NIGHT; // Set the event to continue
+   return true;
+  }
+ }
+ int queueValue;
+ if (timeEventsQueue != NULL && xQueueReceive(timeEventsQueue, &queueValue, 0) == pdTRUE) // If there is a value in the queue
+ {
+  new_event = (events)queueValue;
+  return true;
+ }
+ return false;
 }
 long ctStartPressed = LOW;
 short previousButtonState = LOW;
 bool button_1_sensor()
 {
-    short buttonState = readButton(); // Read the button state
-
-    if (buttonState == HIGH && previousButtonState == LOW) // Button pressed
-    {
-        ctStartPressed = millis(); // Start timer
-        previousButtonState = buttonState;
-        return false;
-    }
-    if (buttonState == LOW && previousButtonState == HIGH) // Button released
-    {
-        if (millis() - ctStartPressed > LONG_PRESS_TIME) // Long press
-        {
-            new_event = EV_BUTTON_1_LONG_PRESS;
-            previousButtonState = buttonState;
-            //    xTaskNotifyGive(limitSwitchTaskHandler);
-            return true;
-        }
-        else // Short press
-        {
-            new_event = EV_BUTTON_1_TAP;
-            previousButtonState = buttonState;
-            return true;
-        }
-    }
-    return false;
+ unsigned long currentTime = micros();                   // Get the current time
+ unsigned long ctStartPressed = 0;                       // Variable to store the time when the button was pressed
+ if (!xQueuePeek(buttonEventsQueue, &ctStartPressed, 0)) // Peek the previous button state from the queue
+ {
+  return false; // If there is no button event, return false
+ }
+ if (currentTime - ctStartPressed > LONG_PRESS_TIME * 1000)
+ {
+  UBaseType_t count = uxQueueMessagesWaiting(buttonEventsQueue);
+  if (count == 1)
+  {
+   new_event = EV_BUTTON_1_TAP;
+  }
+  else if (count == 2)
+  {
+   new_event = EV_BUTTON_1_LONG_PRESS;
+  }
+  while (xQueueReceive(buttonEventsQueue, &ctStartPressed, 0) == pdTRUE)
+   ; // Clear the queue
+  return true;
+ }
 }
 bool button_2_sensor()
 {
-    // TODO: Implementar la función para detectar el botón 2
-    return false;
+ // TODO: Implementar la función para detectar el botón 2
+ return false;
 }
 bool button_3_sensor()
 {
-    // TODO: Implementar la función para detectar el botón 3
-    return false;
+ // TODO: Implementar la función para detectar el botón 3
+ return false;
 }
 bool limit_switch_moving_sensor()
 {
-    if (objetiveDay == NO_PILL_TOOKING) // Si no hay un ciclo de recordatorio activo, no se detecta el interruptor de límite en movimiento
-        return false;
-    if (limitSwitchPassed == objetiveDay) // Si el número de interruptores de límite pasados es igual al día objetivo, se ha alcanzado el final del recorrido
-    {
-        limitSwitchPassed = -limitSwitchPassed; // Reiniciar el contador de interruptores de límite pasados
-        new_event = EV_LIMIT_SWITCH_MOVING;
-        movingForward = false; // Establecer el evento de interruptor de límite en movimiento
-        return true;           // Se ha alcanzado el final del recorrido
-    }
+ if (objetiveDay == NO_PILL_TOOKING) // Si no hay un ciclo de recordatorio activo, no se detecta el interruptor de límite en movimiento
+  return false;
+ if (limitSwitchPassed == objetiveDay) // Si el número de interruptores de límite pasados es igual al día objetivo, se ha alcanzado el final del recorrido
+ {
+  limitSwitchPassed = -limitSwitchPassed; // Reiniciar el contador de interruptores de límite pasados
+  new_event = EV_LIMIT_SWITCH_MOVING;
+  movingForward = false; // Establecer el evento de interruptor de límite en movimiento
+  return true;           // Se ha alcanzado el final del recorrido
+ }
 
-    // Alcanza el principio
-    if (limitSwitchPassed == LOW && !movingForward)
-    {
-        new_event = EV_LIMIT_SWITCH_START;
-        return true;
-    }
-    return false;
+ // Alcanza el principio
+ if (limitSwitchPassed == LOW && !movingForward)
+ {
+  new_event = EV_LIMIT_SWITCH_START;
+  return true;
+ }
+ return false;
 }
 
 bool potentiometer_sensor()
 {
-    long potentiometerNewValue = readPotentiometer();
+ long potentiometerNewValue = readPotentiometer();
 
-    if (potentiometerNewValue > (potentiometerLastValue + PONTECIOMETER_THRESHOLD))
-    {
-        potentiometerLastValue = potentiometerNewValue;
-        new_event = EV_POT_INCREASED;
-        return true;
-    }
+ if (potentiometerNewValue > (potentiometerLastValue + PONTECIOMETER_THRESHOLD))
+ {
+  potentiometerLastValue = potentiometerNewValue;
+  new_event = EV_POT_INCREASED;
+  return true;
+ }
 
-    if (potentiometerNewValue < (potentiometerLastValue - PONTECIOMETER_THRESHOLD))
-    {
-        potentiometerLastValue = potentiometerNewValue;
-        new_event = EV_POT_DECREASED;
-        return true;
-    }
+ if (potentiometerNewValue < (potentiometerLastValue - PONTECIOMETER_THRESHOLD))
+ {
+  potentiometerLastValue = potentiometerNewValue;
+  new_event = EV_POT_DECREASED;
+  return true;
+ }
 
-    return false;
+ return false;
 }
 
 bool message_sensor()
 {
-    if (!json_queue_is_empty(&messagesQueue))
-    {
-        new_event = EV_MESSAGE_RECEIVED;
-        return true;
-    }
-    return false;
+ if (!json_queue_is_empty(&messagesQueue))
+ {
+  new_event = EV_MESSAGE_RECEIVED;
+  return true;
+ }
+ return false;
 }
 
 bool presence_sensor()
 {
-    if (objetivePeriod == NO_PILL_TOOKING) // Si no hay un ciclo de recordatorio activo, no se detecta la presencia de pastillas
-        return false;
+ if (objetivePeriod == NO_PILL_TOOKING) // Si no hay un ciclo de recordatorio activo, no se detecta la presencia de pastillas
+  return false;
 
-    short value = presenceSensorsArray[objetivePeriod]();
-    new_event = INVERSE_PRESENCE_SENSOR ? ((value > PRECENSE_THRESHOLD) ? EV_PILL_DETECTED : EV_PILL_NOT_DETECTED)
-                                        : ((value < PRECENSE_THRESHOLD) ? EV_PILL_DETECTED
-                                                                        : EV_PILL_NOT_DETECTED);
+ short value = presenceSensorsArray[objetivePeriod]();
+ new_event = INVERSE_PRESENCE_SENSOR ? ((value > PRECENSE_THRESHOLD) ? EV_PILL_DETECTED : EV_PILL_NOT_DETECTED)
+                                     : ((value < PRECENSE_THRESHOLD) ? EV_PILL_DETECTED
+                                                                     : EV_PILL_NOT_DETECTED);
 
-    return true;
+ return true;
 }
 
 void setDayAndPeriod()
 {
-    if (new_event >= MAX_PERIODS)
-    {
-        return;
-    }
-    objetiveDay = (new_event / MAX_PILLS_PER_DAY) + 1;
-    objetivePeriod = new_event % MAX_PILLS_PER_DAY;
+ if (new_event >= MAX_PERIODS)
+ {
+  return;
+ }
+ objetiveDay = (new_event / MAX_PILLS_PER_DAY) + 1;
+ objetivePeriod = new_event % MAX_PILLS_PER_DAY;
 }

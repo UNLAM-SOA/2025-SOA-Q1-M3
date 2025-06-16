@@ -11,10 +11,10 @@
 #define TIMEOUT_SETUP 1000
 #define TIMEOUT_GET_TIME 5
 #define DEBOUNCE_SECONDS 200
-
-//const char *ssid = "Wokwi-GUEST";
-const char *ssid = "iPhone de Mateo";
-const char *password = "deesta15";
+#define BUTTON_QUEUE_SIZE 2
+// const char *ssid = "Wokwi-GUEST";
+const char *ssid = "Wokwi-GUEST";
+const char *password = "";
 
 const char *ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = GMT_DIFFERENCE * HOUR_TO_SECONDS;
@@ -104,23 +104,41 @@ void detectMovingLimitSwitch()
  }
 }
 
-// TODO: not working fine
-void detectButtonPress()
+void IRAM_ATTR detectButtonPress()
 {
- // unsigned long interruptTime = millis();
- // if (interruptTime - lastButtonPressTime > 10)
- //  {
- // 200 ms de debounce
- short buttonState = readButton(); // Lee el estado del botón
- // lastButtonPressTime = interruptTime;
- xQueueSend(buttonEventsQueue, &buttonState, 0); // Enviar evento de botón a la cola
-                                                 //  }
+ static uint32_t lastInterruptTime = 0; // Guarda el último tiempo de interrupción
+ uint32_t interruptTime = micros();     // Obtiene el tiempo actual en microsegundos
+
+ // Umbral de debounce (ejemplo: 200ms = 200,000 µs)
+ const uint32_t debounceDelay = 100000;
+
+ // Si la interrupción ocurrió demasiado pronto, se ignora (debounce)
+ if (interruptTime - lastInterruptTime < debounceDelay)
+ {
+  return;
+ }
+
+ // Actualiza el último tiempo válido
+ lastInterruptTime = interruptTime;
+
+ // Envía el evento a la cola (si está inicializada)
+ BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+ if (buttonEventsQueue != NULL)
+ {
+  xQueueSendFromISR(buttonEventsQueue, &interruptTime, &xHigherPriorityTaskWoken);
+ }
+
+ // Si se debe hacer un context switch
+ if (xHigherPriorityTaskWoken == pdTRUE)
+ {
+  portYIELD_FROM_ISR();
+ }
 }
 
 void queueSetup()
 {
  timeEventsQueue = xQueueCreate(MAX_EVENTS, sizeof(events));
- buttonEventsQueue = xQueueCreate(MAX_EVENTS, sizeof(short));
+ buttonEventsQueue = xQueueCreate(2, sizeof(unsigned long));
 }
 
 void semaphoreSetup()
