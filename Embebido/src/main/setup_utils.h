@@ -93,6 +93,7 @@ void handleTimerCallback(TimerHandle_t xTimer)
 
 volatile unsigned long lastInterruptTime = 0;
 volatile unsigned long lastButtonPressTime = 0;
+volatile unsigned long lastLimitSwitchTime = 0;
 void detectMovingLimitSwitch()
 {
  unsigned long interruptTime = millis();
@@ -131,4 +132,14 @@ void semaphoreSetup()
 
  xSemaphoreTake(noPillNotificationSemaphore, 0);
  xSemaphoreTake(notificationSemaphore, 0);
+}
+
+void detectLimitSwitch()
+{
+ unsigned long currentTime = millis();
+ if (currentTime - lastLimitSwitchTime > DEBOUNCE_SECONDS && objetiveDay == NO_PILL_TOOKING) // Check if enough time has passed since the last limit switch detection
+ {
+  xTaskNotifyGive(limitSwitchTaskHandler); // Update the last limit switch time
+  lastLimitSwitchTime = currentTime;       // Notify the limit switch task
+ }
 }

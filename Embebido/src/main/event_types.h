@@ -22,41 +22,41 @@
 #define PERIODICAL_TIME_EVENTS_TIME 10000 // Para testear: Tiempo en milisegundos entre eventos de tiempo periódicos
 enum events
 {
- EV_TIME_SUNDAY_MORNING,
- EV_TIME_SUNDAY_AFTERNOON,
- EV_TIME_SUNDAY_NIGHT,
- EV_TIME_MONDAY_MORNING,
- EV_TIME_MONDAY_AFTERNOON,
- EV_TIME_MONDAY_NIGHT,
- EV_TIME_TUESDAY_MORNING,
- EV_TIME_TUESDAY_AFTERNOON,
- EV_TIME_TUESDAY_NIGHT,
- EV_TIME_WEDNESDAY_MORNING,
- EV_TIME_WEDNESDAY_AFTERNOON,
- EV_TIME_WEDNESDAY_NIGHT,
- EV_TIME_THURSDAY_MORNING,
- EV_TIME_THURSDAY_AFTERNOON,
- EV_TIME_THURSDAY_NIGHT,
- EV_TIME_FRIDAY_MORNING,
- EV_TIME_FRIDAY_AFTERNOON,
- EV_TIME_FRIDAY_NIGHT,
- EV_TIME_SATURDAY_MORNING,
- EV_TIME_SATURDAY_AFTERNOON,
- EV_TIME_SATURDAY_NIGHT,
- EV_BUTTON_1_TAP,
- EV_BUTTON_2_TAP,
- EV_BUTTON_3_TAP,
- EV_BUTTON_1_LONG_PRESS,
- EV_BUTTON_2_LONG_PRESS,
- EV_BUTTON_3_LONG_PRESS,
- EV_POT_INCREASED,
- EV_POT_DECREASED,
- EV_MESSAGE_RECEIVED,
- EV_LIMIT_SWITCH_MOVING,
- EV_LIMIT_SWITCH_START,
- EV_PILL_DETECTED,
- EV_PILL_NOT_DETECTED,
- EV_CONT,
+    EV_TIME_SUNDAY_MORNING,
+    EV_TIME_SUNDAY_AFTERNOON,
+    EV_TIME_SUNDAY_NIGHT,
+    EV_TIME_MONDAY_MORNING,
+    EV_TIME_MONDAY_AFTERNOON,
+    EV_TIME_MONDAY_NIGHT,
+    EV_TIME_TUESDAY_MORNING,
+    EV_TIME_TUESDAY_AFTERNOON,
+    EV_TIME_TUESDAY_NIGHT,
+    EV_TIME_WEDNESDAY_MORNING,
+    EV_TIME_WEDNESDAY_AFTERNOON,
+    EV_TIME_WEDNESDAY_NIGHT,
+    EV_TIME_THURSDAY_MORNING,
+    EV_TIME_THURSDAY_AFTERNOON,
+    EV_TIME_THURSDAY_NIGHT,
+    EV_TIME_FRIDAY_MORNING,
+    EV_TIME_FRIDAY_AFTERNOON,
+    EV_TIME_FRIDAY_NIGHT,
+    EV_TIME_SATURDAY_MORNING,
+    EV_TIME_SATURDAY_AFTERNOON,
+    EV_TIME_SATURDAY_NIGHT,
+    EV_BUTTON_1_TAP,
+    EV_BUTTON_2_TAP,
+    EV_BUTTON_3_TAP,
+    EV_BUTTON_1_LONG_PRESS,
+    EV_BUTTON_2_LONG_PRESS,
+    EV_BUTTON_3_LONG_PRESS,
+    EV_POT_INCREASED,
+    EV_POT_DECREASED,
+    EV_MESSAGE_RECEIVED,
+    EV_LIMIT_SWITCH_MOVING,
+    EV_LIMIT_SWITCH_START,
+    EV_PILL_DETECTED,
+    EV_PILL_NOT_DETECTED,
+    EV_CONT,
 } new_event = EV_CONT;
 
 String events_s[] = {
@@ -121,12 +121,12 @@ bool movingForward = true; // It starts moving forward
 short (*presenceSensorsArray[MAX_PILLS_PER_DAY])() = {readPresenceSensor_TM, readPresenceSensor_TT, readPresenceSensor_TN};
 short limitSwitchPassed = 0; // How many limit switches have been passed
 long lct_time = 0;           // Last cycle time
-bool firstTime=False
-bool time_sensor()
+bool firstTime = False bool time_sensor()
 {
+<<<<<<< HEAD
     if (ENABLE_PERIODICAL_TIME_EVENTS) // If periodic time events are enabled
     {
-        if ((millis() - lct_time > PERIODICAL_TIME_EVENTS_TIME))) // If the time since the last event is greater than the defined time
+        if (millis() - lct_time > PERIODICAL_TIME_EVENTS_TIME) // If the time since the last event is greater than the defined time
         {
             lct_time = millis();                // Update the last cycle time
             new_event = EV_TIME_THURSDAY_NIGHT; // Set the event to continue
@@ -159,6 +159,7 @@ bool button_1_sensor()
         {
             new_event = EV_BUTTON_1_LONG_PRESS;
             previousButtonState = buttonState;
+            //    xTaskNotifyGive(limitSwitchTaskHandler);
             return true;
         }
         else // Short press
@@ -203,28 +204,29 @@ bool limit_switch_moving_sensor()
 
 bool potentiometer_sensor()
 {
- long potentiometerNewValue = readPotentiometer();
+    long potentiometerNewValue = readPotentiometer();
 
- if (potentiometerNewValue > (potentiometerLastValue + PONTECIOMETER_THRESHOLD))
- {
-  potentiometerLastValue = potentiometerNewValue;
-  new_event = EV_POT_INCREASED;
-  return true;
- }
+    if (potentiometerNewValue > (potentiometerLastValue + PONTECIOMETER_THRESHOLD))
+    {
+        potentiometerLastValue = potentiometerNewValue;
+        new_event = EV_POT_INCREASED;
+        return true;
+    }
 
- if (potentiometerNewValue < (potentiometerLastValue - PONTECIOMETER_THRESHOLD))
- {
-  potentiometerLastValue = potentiometerNewValue;
-  new_event = EV_POT_DECREASED;
-  return true;
- }
+    if (potentiometerNewValue < (potentiometerLastValue - PONTECIOMETER_THRESHOLD))
+    {
+        potentiometerLastValue = potentiometerNewValue;
+        new_event = EV_POT_DECREASED;
+        return true;
+    }
 
- return false;
+    return false;
 }
 
 bool message_sensor()
 {
-    if(!json_queue_is_empty(&messagesQueue)){
+    if (!json_queue_is_empty(&messagesQueue))
+    {
         new_event = EV_MESSAGE_RECEIVED;
         return true;
     }
