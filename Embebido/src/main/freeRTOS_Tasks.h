@@ -151,5 +151,6 @@ void scanAllPills(void *)
         Serial.print(", ");
     }
     Serial.println();
+    xSemaphoreGive(scanningCompletedSemaphore); // Indica que la tarea de escaneo ha finalizado
   }
 }

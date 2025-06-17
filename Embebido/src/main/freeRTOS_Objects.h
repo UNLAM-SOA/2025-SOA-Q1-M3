@@ -8,6 +8,7 @@ extern TaskHandle_t limitSwitchTaskHandler;
 extern QueueHandle_t timeEventsQueue;
 extern QueueHandle_t buttonEventsQueue;
 extern SemaphoreHandle_t showTimerSemaphore;
+extern SemaphoreHandle_t scanningCompletedSemaphore;
 extern SemaphoreHandle_t lcdMutex;
 extern SemaphoreHandle_t notificationSemaphore;
 extern SemaphoreHandle_t noPillNotificationSemaphore;
@@ -23,6 +24,7 @@ QueueHandle_t buttonEventsQueue = NULL;
 SemaphoreHandle_t showTimerSemaphore = NULL;
 SemaphoreHandle_t lcdMutex = NULL;
 SemaphoreHandle_t notificationSemaphore = NULL;
+SemaphoreHandle_t scanningCompletedSemaphore = NULL;
 SemaphoreHandle_t noPillNotificationSemaphore = NULL;
 
 void waitForSemaphore(void (*callback)(void *), void *params, SemaphoreHandle_t semaphore)

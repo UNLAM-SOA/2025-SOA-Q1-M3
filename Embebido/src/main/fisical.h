@@ -22,7 +22,7 @@
 #define PRESENCE_LED_3 12
 
 // Fines de carrera
-#define LIMIT_SWITCH_PIN 23
+#define LIMIT_SWITCH_PIN 25
 
 #define BUZZER_PIN 13
 #define POTENTIOMETER_PIN 33

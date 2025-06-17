@@ -11,7 +11,7 @@
 #define TIMEOUT_SETUP 1000
 #define TIMEOUT_GET_TIME 5
 #define DEBOUNCE_SECONDS 200
-#define BUTTON_QUEUE_SIZE 2
+#define BUTTON_QUEUE_SIZE 3
 // const char *ssid = "Wokwi-GUEST";
 const char *ssid = "Wokwi-GUEST";
 const char *password = "";
@@ -110,7 +110,7 @@ void IRAM_ATTR detectButtonPress()
  uint32_t interruptTime = micros();     // Obtiene el tiempo actual en microsegundos
 
  // Umbral de debounce (ejemplo: 200ms = 200,000 µs)
- const uint32_t debounceDelay = 100000;
+ const uint32_t debounceDelay = 50000;
 
  // Si la interrupción ocurrió demasiado pronto, se ignora (debounce)
  if (interruptTime - lastInterruptTime < debounceDelay)
@@ -138,7 +138,7 @@ void IRAM_ATTR detectButtonPress()
 void queueSetup()
 {
  timeEventsQueue = xQueueCreate(MAX_EVENTS, sizeof(events));
- buttonEventsQueue = xQueueCreate(2, sizeof(unsigned long));
+ buttonEventsQueue = xQueueCreate(BUTTON_QUEUE_SIZE, sizeof(unsigned long));
 }
 
 void semaphoreSetup()
@@ -147,9 +147,11 @@ void semaphoreSetup()
  lcdMutex = xSemaphoreCreateMutex();
  notificationSemaphore = xSemaphoreCreateMutex();
  noPillNotificationSemaphore = xSemaphoreCreateMutex();
+ scanningCompletedSemaphore = xSemaphoreCreateBinary();
 
  xSemaphoreTake(noPillNotificationSemaphore, 0);
  xSemaphoreTake(notificationSemaphore, 0);
+ xSemaphoreTake(scanningCompletedSemaphore, 0);
 }
 
 void detectLimitSwitch()

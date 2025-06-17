@@ -5,7 +5,7 @@
 #include "freeRTOS_Objects.h"
 #include "Drivers/MQTT_Driver.h"
 
-#define MAX_EVENTS 35
+#define MAX_EVENTS 36
 
 #define MAX_TYPE_EVENTS 7
 #define INVERSE_PRESENCE_SENSOR 1 // 0-->Hay pastilla, 1-->No hay pastilla
@@ -16,7 +16,7 @@
 #define PRECENSE_THRESHOLD 100 // Valor de umbral para detectar la presencia de pastillas
 #define PONTECIOMETER_THRESHOLD 5
 #define NO_PILL_TOOKING -1
-#define LONG_PRESS_TIME 500 // Tiempo de presión larga en milisegundos
+#define LONG_PRESS_TIME 1000 // Tiempo de presión larga en milisegundos
 
 #define ENABLE_PERIODICAL_TIME_EVENTS 0   // Para testear: Habilitar eventos de tiempo periódicos (0: deshabilitado, 1: habilitado)
 #define PERIODICAL_TIME_EVENTS_TIME 10000 // Para testear: Tiempo en milisegundos entre eventos de tiempo periódicos
@@ -56,6 +56,7 @@ enum events
  EV_LIMIT_SWITCH_START,
  EV_PILL_DETECTED,
  EV_PILL_NOT_DETECTED,
+ EV_SCAN_ALL,
  EV_CONT,
 } new_event = EV_CONT;
 
@@ -95,6 +96,7 @@ String events_s[] = {
     "EV_LIMIT_SWITCH_START",
     "EV_PILL_DETECTED",
     "EV_PILL_NOT_DETECTED",
+    "EV_SCAN_ALL",
     "EV_CONT",
 };
 
@@ -162,6 +164,10 @@ bool button_1_sensor()
   {
    new_event = EV_BUTTON_1_LONG_PRESS;
   }
+  else if (count == 3)
+  {
+   new_event = EV_SCAN_ALL; // If the button is pressed for a long time, set the event to scan all pills
+  }
   while (xQueueReceive(buttonEventsQueue, &ctStartPressed, 0) == pdTRUE)
    ; // Clear the queue
   return true;
@@ -179,6 +185,11 @@ bool button_3_sensor()
 }
 bool limit_switch_moving_sensor()
 {
+ if (xSemaphoreTake(scanningCompletedSemaphore, 0) == pdTRUE) // Si se puede tomar el semáforo, se ha alcanzado el final del recorrido
+ {
+  new_event = EV_LIMIT_SWITCH_START;
+  return true; // Se ha alcanzado el final del recorrido
+ }
  if (objetiveDay == NO_PILL_TOOKING) // Si no hay un ciclo de recordatorio activo, no se detecta el interruptor de límite en movimiento
   return false;
  if (limitSwitchPassed == objetiveDay) // Si el número de interruptores de límite pasados es igual al día objetivo, se ha alcanzado el final del recorrido
@@ -223,6 +234,23 @@ bool message_sensor()
 {
  if (!json_queue_is_empty(&messagesQueue))
  {
+
+  StaticJsonDocument<JSON_DOC_SIZE> doc;
+
+  json_queue_peek(&messagesQueue, doc);
+
+  if (doc.containsKey("context"))
+  {
+   JsonObject context = doc["context"];
+   String type = context["type"];
+   if (type == "scan")
+   {
+    json_queue_dequeue(&messagesQueue, doc);
+    new_event = EV_SCAN_ALL;
+    return true;
+   }
+  }
+
   new_event = EV_MESSAGE_RECEIVED;
   return true;
  }

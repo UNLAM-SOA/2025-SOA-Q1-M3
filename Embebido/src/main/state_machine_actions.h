@@ -169,6 +169,13 @@ void pauseCycle()
  xSemaphoreTake(showTimerSemaphore, 0);
  writeLCD("Cycle paused\nPress button to resume...");
 }
+void startFullScan()
+{
+ xTaskNotifyGive(limitSwitchTaskHandler);
+}
+void finishScan()
+{
+}
 void processMessage()
 {
  StaticJsonDocument<JSON_DOC_SIZE> doc;
@@ -202,10 +209,6 @@ void processMessage()
    default:
     Serial.print("Buzzer value not recognized");
    }
-  }
-  else if (type == "scan")
-  {
-   xTaskNotifyGive(limitSwitchTaskHandler);
   }
  }
 }

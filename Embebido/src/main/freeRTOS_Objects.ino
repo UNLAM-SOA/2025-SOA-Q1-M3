@@ -7,6 +7,7 @@ QueueHandle_t buttonEventsQueue = NULL;
 SemaphoreHandle_t showTimerSemaphore = NULL;
 SemaphoreHandle_t lcdMutex = NULL;
 SemaphoreHandle_t notificationSemaphore = NULL;
+SemaphoreHandle_t scanningCompletedSemaphore = NULL;
 SemaphoreHandle_t noPillNotificationSemaphore = NULL;
 
 void waitForSemaphore(void (*callback)(void *), void *params, SemaphoreHandle_t semaphore)
