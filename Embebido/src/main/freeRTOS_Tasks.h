@@ -10,9 +10,11 @@
 #define LCD_BLINK_TIME 5000
 #define NOTIFICATION_FRECUENCY_ALERT 1000
 #define NOTIFICATION_UNNAVAILABLE_ALERT 500
-
+#define JSON_ARRAY_OFFSET (MAX_PILLS_PER_DAY * MAX_DAYS) + 4 // Offset for the JSON array size
+#define JSON_STRING_LENGTH (MAX_PILLS_PER_DAY * MAX_DAYS + JSON_ARRAY_OFFSET)
 long last_time = 0;
 
+void shortArrayToJsonString(const short *arr, int len, char *out, size_t outSize);
 void (*setLeds[MAX_PILLS_PER_DAY])(short) = {setLedPresence_TM, setLedPresence_TT, setLedPresence_TN};
 
 bool isBelowTime(int frecuency)
@@ -113,6 +115,7 @@ void scanAllPills(void *)
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY); // Espera a que se notifique la tarea
     Serial.println("Scanning all pills...");
     short scanStatus[MAX_PILLS_PER_DAY * MAX_DAYS] = {0}; // Array para almacenar el estado de cada pastilla
+    char scanStatusJson[JSON_STRING_LENGTH] = {0};        // Buffer para el JSON
     startMotorRight();
     for (int i = 0; i < MAX_DAYS; i++)
     {
@@ -151,6 +154,28 @@ void scanAllPills(void *)
         Serial.print(", ");
     }
     Serial.println();
-    xSemaphoreGive(scanningCompletedSemaphore); // Indica que la tarea de escaneo ha finalizado
+    shortArrayToJsonString(scanStatus, JSON_STRING_LENGTH, scanStatusJson, sizeof(scanStatusJson));
+    mqtt_publish_message(pill_scan_topic, 0, scanStatusJson); // Publica el estado del escaneo en MQTT
+    xSemaphoreGive(scanningCompletedSemaphore);               // Indica que la tarea de escaneo ha finalizado
   }
+}
+void shortArrayToJsonString(const short *arr, int len, char *out, size_t outSize)
+{
+  size_t offset = 0;
+  offset += snprintf(out + offset, outSize - offset, "[");
+
+  for (int i = 0; i < len; i++)
+  {
+    if (offset >= outSize)
+      break;
+
+    offset += snprintf(out + offset, outSize - offset, "%d", arr[i]);
+
+    if (i < len - 1)
+    {
+      offset += snprintf(out + offset, outSize - offset, ",");
+    }
+  }
+
+  snprintf(out + offset, outSize - offset, "]");
 }

@@ -14,11 +14,11 @@ typedef void (*action)();
 void initialize()
 {
 
+ setupWifi();
  // Lee archivo con horarios y dias
  configSetup();
 
  fisicalSetup();
- setupWifi();
  setupTime();
 
  // Calcula el proximo horario y dia
