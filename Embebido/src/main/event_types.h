@@ -16,10 +16,10 @@
 #define PRECENSE_THRESHOLD 100 // Valor de umbral para detectar la presencia de pastillas
 #define PONTECIOMETER_THRESHOLD 5
 #define NO_PILL_TOOKING -1
-#define LONG_PRESS_TIME 1000 // Tiempo de presión larga en milisegundos
+#define LONG_PRESS_TIME 500 // Tiempo de presión larga en milisegundos
 
 #define ENABLE_PERIODICAL_TIME_EVENTS 0   // Para testear: Habilitar eventos de tiempo periódicos (0: deshabilitado, 1: habilitado)
-#define PERIODICAL_TIME_EVENTS_TIME 10000 // Para testear: Tiempo en milisegundos entre eventos de tiempo periódicos
+#define PERIODICAL_TIME_EVENTS_TIME 50000 // Para testear: Tiempo en milisegundos entre eventos de tiempo periódicos
 enum events
 {
  EV_TIME_SUNDAY_MORNING,
@@ -145,32 +145,29 @@ bool time_sensor()
 }
 long ctStartPressed = LOW;
 short previousButtonState = LOW;
+unsigned long lastButtonPressed = LOW;
+short buttonAmountPressed = 0;
 bool button_1_sensor()
 {
- unsigned long currentTime = micros();                   // Get the current time
- unsigned long ctStartPressed = 0;                       // Variable to store the time when the button was pressed
- if (!xQueuePeek(buttonEventsQueue, &ctStartPressed, 0)) // Peek the previous button state from the queue
+ unsigned long currentTime = micros();                                                                               // Get the current time
+ if (!xQueuePeek(buttonEventsQueue, &ctStartPressed, 0) && currentTime - lastButtonPressed > LONG_PRESS_TIME * 1000) // Peek the previous button state from the queue
  {
-  return false; // If there is no button event, return false
- }
- if (currentTime - ctStartPressed > LONG_PRESS_TIME * 1000)
- {
-  UBaseType_t count = uxQueueMessagesWaiting(buttonEventsQueue);
-  if (count == 1)
-  {
+  if (buttonAmountPressed == 1)
    new_event = EV_BUTTON_1_TAP;
-  }
-  else if (count == 2)
-  {
+  else if (buttonAmountPressed == 2)
    new_event = EV_BUTTON_1_LONG_PRESS;
-  }
-  else if (count == 3)
-  {
-   new_event = EV_SCAN_ALL; // If the button is pressed for a long time, set the event to scan all pills
-  }
-  while (xQueueReceive(buttonEventsQueue, &ctStartPressed, 0) == pdTRUE)
-   ; // Clear the queue
+  else if (buttonAmountPressed >= 3)
+   new_event = EV_SCAN_ALL;
+  lastButtonPressed = LOW;
+  buttonAmountPressed = 0;
   return true;
+ }
+ if (xQueueReceive(buttonEventsQueue, &lastButtonPressed, 0) == pdTRUE)
+  buttonAmountPressed++;
+
+ if (currentTime - lastButtonPressed < LONG_PRESS_TIME * 1000)
+ {
+  return false;
  }
 }
 bool button_2_sensor()
@@ -276,6 +273,6 @@ void setDayAndPeriod()
  {
   return;
  }
- objetiveDay = (new_event / MAX_PILLS_PER_DAY) + 1;
+ objetiveDay = ((new_event / MAX_PILLS_PER_DAY) * 2) + 4;
  objetivePeriod = new_event % MAX_PILLS_PER_DAY;
 }

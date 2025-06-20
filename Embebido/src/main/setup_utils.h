@@ -5,6 +5,7 @@
 
 #include "fisical.h"
 #include "state_machine.h"
+#include "esp_timer.h"
 
 #define HOUR_TO_SECONDS 3600
 #define GMT_DIFFERENCE -4
@@ -12,8 +13,8 @@
 #define TIMEOUT_GET_TIME 5
 #define DEBOUNCE_SECONDS 200
 #define BUTTON_QUEUE_SIZE 3
-// const char *ssid = "Wokwi-GUEST";
-const char *ssid = "Wokwi-GUEST";
+// const char *ssid = "TP_LINK_97CC";
+const char *ssid = "";
 const char *password = "";
 
 const char *ntpServer = "pool.ntp.org";
@@ -91,41 +92,47 @@ void handleTimerCallback(TimerHandle_t xTimer)
  }
 }
 
-volatile unsigned long lastInterruptTime = 0;
+volatile uint64_t lastInterruptTime = 0;
 volatile unsigned long lastButtonPressTime = 0;
-volatile unsigned long lastLimitSwitchTime = 0;
-void detectMovingLimitSwitch()
+void IRAM_ATTR detectMovingLimitSwitch()
 {
- unsigned long interruptTime = millis();
+ uint64_t interruptTime = esp_timer_get_time();
  if (interruptTime - lastInterruptTime > DEBOUNCE_SECONDS)
  {
-  limitSwitchPassed++;
+  if (objetiveDay == NO_PILL_TOOKING)
+  {
+   xTaskNotifyGive(limitSwitchTaskHandler);
+  }
+  else
+  {
+   limitSwitchPassed++;
+  }
   lastInterruptTime = interruptTime;
  }
 }
 
+static uint32_t buttonLastInterruptTime = 0; // Guarda el último tiempo de interrupción
+// Umbral de debounce (ejemplo: 200ms = 200,000 µs)
+const uint32_t buttonDebounceDelay = 50000;
 void IRAM_ATTR detectButtonPress()
 {
- static uint32_t lastInterruptTime = 0; // Guarda el último tiempo de interrupción
- uint32_t interruptTime = micros();     // Obtiene el tiempo actual en microsegundos
 
- // Umbral de debounce (ejemplo: 200ms = 200,000 µs)
- const uint32_t debounceDelay = 50000;
+ uint32_t buttonInterruptTime = micros(); // Obtiene el tiempo actual en microsegundos
 
  // Si la interrupción ocurrió demasiado pronto, se ignora (debounce)
- if (interruptTime - lastInterruptTime < debounceDelay)
+ if (buttonInterruptTime - buttonLastInterruptTime < buttonDebounceDelay)
  {
   return;
  }
 
  // Actualiza el último tiempo válido
- lastInterruptTime = interruptTime;
-
+ buttonLastInterruptTime = buttonInterruptTime;
+ limitSwitchPassed++;
  // Envía el evento a la cola (si está inicializada)
  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
  if (buttonEventsQueue != NULL)
  {
-  xQueueSendFromISR(buttonEventsQueue, &interruptTime, &xHigherPriorityTaskWoken);
+  xQueueSendFromISR(buttonEventsQueue, &buttonInterruptTime, &xHigherPriorityTaskWoken);
  }
 
  // Si se debe hacer un context switch
@@ -152,14 +159,4 @@ void semaphoreSetup()
  xSemaphoreTake(noPillNotificationSemaphore, 0);
  xSemaphoreTake(notificationSemaphore, 0);
  xSemaphoreTake(scanningCompletedSemaphore, 0);
-}
-
-void detectLimitSwitch()
-{
- unsigned long currentTime = millis();
- if (currentTime - lastLimitSwitchTime > DEBOUNCE_SECONDS && objetiveDay == NO_PILL_TOOKING) // Check if enough time has passed since the last limit switch detection
- {
-  xTaskNotifyGive(limitSwitchTaskHandler); // Update the last limit switch time
-  lastLimitSwitchTime = currentTime;       // Notify the limit switch task
- }
 }

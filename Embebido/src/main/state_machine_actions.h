@@ -26,14 +26,14 @@ void initialize()
 
  queueSetup();
  semaphoreSetup();
- xTaskCreate(showHourTimerLCD, "showHourTimerLCD", 2048, NULL, 1, NULL);
+ xTaskCreate(showHourTimerLCD, "showHourTimerLCD", 4096, NULL, 1, NULL);
  xTaskCreate(notifyDoseAvailable, "notifyDoseAvailable", 2048, NULL, 1, NULL);
  xTaskCreate(notifyDoseUnnavailable, "notifyDoseUnnavailable", 2048, NULL, 1, NULL);
  xTaskCreate(scanAllPills, "scanAllPills", 8192, NULL, 1, &limitSwitchTaskHandler);
 
- attachInterrupt(LIMIT_SWITCH_PIN, detectMovingLimitSwitch, RISING);
- attachInterrupt(LIMIT_SWITCH_PIN, detectLimitSwitch, FALLING); // Configura la interrupción para el interruptor de límite
- attachInterrupt(BUTTON_PIN, detectButtonPress, RISING);        // Configura la interrupción para el botón
+ attachInterrupt(LIMIT_SWITCH_PIN, detectMovingLimitSwitch, CHANGE);
+ // attachInterrupt(LIMIT_SWITCH_PIN, detectLimitSwitch, CHANGE); // Configura la interrupción para el interruptor de límite
+ attachInterrupt(BUTTON_PIN, detectButtonPress, FALLING); // Configura la interrupción para el botón
 
  mqtt_setup();
 }
@@ -171,10 +171,14 @@ void pauseCycle()
 }
 void startFullScan()
 {
+ xSemaphoreTake(showTimerSemaphore, 0);
+ writeLCD("Full scan started\nPlease wait...");
  xTaskNotifyGive(limitSwitchTaskHandler);
+ Serial.println("Notificaciones enviadas");
 }
 void finishScan()
 {
+ xSemaphoreGive(showTimerSemaphore);
 }
 void processMessage()
 {

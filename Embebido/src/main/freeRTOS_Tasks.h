@@ -108,11 +108,16 @@ void notifyDoseUnnavailable(void *)
   }
 }
 
+void doubleNotify()
+{
+  ulTaskNotifyTake(pdTRUE, portMAX_DELAY); // Espera a que se notifique la tarea
+  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+}
 void scanAllPills(void *)
 {
   while (1)
   {
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY); // Espera a que se notifique la tarea
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
     Serial.println("Scanning all pills...");
     short scanStatus[MAX_PILLS_PER_DAY * MAX_DAYS] = {0}; // Array para almacenar el estado de cada pastilla
     char scanStatusJson[JSON_STRING_LENGTH] = {0};        // Buffer para el JSON
@@ -120,8 +125,8 @@ void scanAllPills(void *)
     for (int i = 0; i < MAX_DAYS; i++)
     {
       Serial.println("aca0");
-      ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-      Serial.print("Scanning day ");
+      doubleNotify();
+          Serial.print("Scanning day ");
       Serial.println(i + 1);
       stopMotor();
       vTaskDelay(100); // Espera un poco para evitar lecturas erróneas
@@ -139,13 +144,14 @@ void scanAllPills(void *)
     startMotorLeft();
     for (int i = 0; i < MAX_DAYS; i++)
     {
-      ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+      doubleNotify();
       Serial.print("Returning from day ");
       Serial.println(i + 1);
     }
     stopMotor();
     // Send scanStatus to MQTT
     // TODO
+    limitSwitchPassed = 0; // Reinicia el contador de pasadas por el interruptor de límite
     Serial.print("Scan Status: ");
     for (int i = 0; i < MAX_PILLS_PER_DAY * MAX_DAYS; i++)
     {
