@@ -127,7 +127,6 @@ void IRAM_ATTR detectButtonPress()
 
  // Actualiza el último tiempo válido
  buttonLastInterruptTime = buttonInterruptTime;
- limitSwitchPassed++;
  // Envía el evento a la cola (si está inicializada)
  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
  if (buttonEventsQueue != NULL)

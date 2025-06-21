@@ -9,7 +9,7 @@
 
 #define LCD_BLINK_TIME 5000
 #define NOTIFICATION_FRECUENCY_ALERT 1000
-#define NOTIFICATION_UNNAVAILABLE_ALERT 500
+#define NOTIFICATION_UNNAVAILABLE_ALERT 200
 #define JSON_ARRAY_OFFSET (MAX_PILLS_PER_DAY * MAX_DAYS) + 4 // Offset for the JSON array size
 #define JSON_STRING_LENGTH (MAX_PILLS_PER_DAY * MAX_DAYS + JSON_ARRAY_OFFSET)
 long last_time = 0;
@@ -126,7 +126,7 @@ void scanAllPills(void *)
     {
       Serial.println("aca0");
       doubleNotify();
-          Serial.print("Scanning day ");
+      Serial.print("Scanning day ");
       Serial.println(i + 1);
       stopMotor();
       vTaskDelay(100); // Espera un poco para evitar lecturas erróneas

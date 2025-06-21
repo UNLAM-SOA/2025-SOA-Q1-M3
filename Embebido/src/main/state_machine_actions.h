@@ -83,6 +83,7 @@ void stopReturning()
  objetiveDay = NO_PILL_TOOKING;
  objetivePeriod = NO_PILL_TOOKING;
  DebugPrint("Stop returning...");
+ limitSwitchPassed = 0; // Reinicia el contador de pasadas por el interruptor de límite
 }
 void awaitingTimer()
 {
@@ -103,6 +104,7 @@ void awaitingTimer()
 }
 void moving()
 {
+ limitSwitchPassed = 0; // Reinicia el contador de pasadas por el interruptor de límite
  DebugPrint("Moving...");
  xSemaphoreTake(showTimerSemaphore, 0);
  writeLCD("Moving...");
@@ -128,6 +130,7 @@ void scanning()
 void pillDetected()
 {
  char payload[50];
+ xSemaphoreTake(noPillNotificationSemaphore, 0);
  snprintf(payload, sizeof(payload), "Pill detected");
  mqtt_publish_message(pill_status_topic, 0, payload);
  writeLCD("Pill detected");
@@ -137,6 +140,7 @@ void pillDetected()
 void noPillDetected()
 {
  char payload[50];
+ xSemaphoreTake(notificationSemaphore, 0);
  snprintf(payload, sizeof(payload), "No pill detected");
  mqtt_publish_message(pill_status_topic, 0, payload);
  DebugPrint("No pill detected...");

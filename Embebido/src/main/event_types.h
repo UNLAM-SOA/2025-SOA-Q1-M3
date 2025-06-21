@@ -18,7 +18,7 @@
 #define NO_PILL_TOOKING -1
 #define LONG_PRESS_TIME 500 // Tiempo de presión larga en milisegundos
 
-#define ENABLE_PERIODICAL_TIME_EVENTS 0   // Para testear: Habilitar eventos de tiempo periódicos (0: deshabilitado, 1: habilitado)
+#define ENABLE_PERIODICAL_TIME_EVENTS 1   // Para testear: Habilitar eventos de tiempo periódicos (0: deshabilitado, 1: habilitado)
 #define PERIODICAL_TIME_EVENTS_TIME 50000 // Para testear: Tiempo en milisegundos entre eventos de tiempo periódicos
 enum events
 {
@@ -182,6 +182,7 @@ bool button_3_sensor()
 }
 bool limit_switch_moving_sensor()
 {
+ //Serial.println(String("Limit switch passed: ") + String(limitSwitchPassed));
  if (xSemaphoreTake(scanningCompletedSemaphore, 0) == pdTRUE) // Si se puede tomar el semáforo, se ha alcanzado el final del recorrido
  {
   new_event = EV_LIMIT_SWITCH_START;
