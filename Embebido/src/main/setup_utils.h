@@ -11,10 +11,10 @@
 #define GMT_DIFFERENCE -4
 #define TIMEOUT_SETUP 1000
 #define TIMEOUT_GET_TIME 5
-#define DEBOUNCE_SECONDS 200
+#define DEBOUNCE_MICROS 50000
 #define BUTTON_QUEUE_SIZE 3
 // const char *ssid = "TP_LINK_97CC";
-const char *ssid = "";
+const char *ssid = "TP_LINK_97CC";
 const char *password = "";
 
 const char *ntpServer = "pool.ntp.org";
@@ -97,7 +97,7 @@ volatile unsigned long lastButtonPressTime = 0;
 void IRAM_ATTR detectMovingLimitSwitch()
 {
  uint64_t interruptTime = esp_timer_get_time();
- if (interruptTime - lastInterruptTime > DEBOUNCE_SECONDS)
+ if (interruptTime - lastInterruptTime > DEBOUNCE_MICROS)
  {
   if (objetiveDay == NO_PILL_TOOKING)
   {
