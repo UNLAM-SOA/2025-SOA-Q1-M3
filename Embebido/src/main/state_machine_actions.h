@@ -32,8 +32,8 @@ void initialize()
  xTaskCreate(scanAllPills, "scanAllPills", 8192, NULL, 1, &limitSwitchTaskHandler);
 
  attachInterrupt(LIMIT_SWITCH_PIN, detectMovingLimitSwitch, FALLING);
- // attachInterrupt(LIMIT_SWITCH_PIN, detectLimitSwitch, CHANGE); // Configura la interrupción para el interruptor de límite
- attachInterrupt(BUTTON_PIN, detectButtonPress, FALLING); // Configura la interrupción para el botón
+ // attachInterrupt(LIMIT_SWITCH_PIN, detectLimitSwitch, CHANGE); 
+ attachInterrupt(BUTTON_PIN, detectButtonPress, FALLING); 
 
  mqtt_setup();
 }
@@ -57,7 +57,7 @@ void none();
 void error() {}
 void none() {}
 
-bool awaiting = false;
+bool awaiting = true;
 
 void modifyVolume()
 {
@@ -82,7 +82,11 @@ void stopReturning()
  xSemaphoreGive(showTimerSemaphore);
  DebugPrint("Stop returning...");
  new_event = EV_LIMIT_SWITCH_START;
- limitSwitchPassed = 0; // Reinicia el contador de pasadas por el interruptor de límite
+ limitSwitchPassed = 0; 
+ char payload[50];
+ snprintf(payload, sizeof(payload), "Awaiting timer");
+ mqtt_publish_message(actual_status_topic, AWAITING, payload);
+ awaiting = true;
 }
 void awaitingTimer()
 {
