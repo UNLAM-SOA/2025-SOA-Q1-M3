@@ -13,21 +13,6 @@ void printCSVSchedule();
 void configSetup()
 {
  setDefaultConfig();
- /*
-
- setupSD();
- if (!SD.exists(PATH_SCHEDULE))
- {
-  Serial.println("No config set, using defaults");
-  setDefaultConfig();
-  saveScheduleToSD();
- }
- else
- {
-  readCsvConfig();
- }
-
- */
 }
 
 void setDefaultConfig()

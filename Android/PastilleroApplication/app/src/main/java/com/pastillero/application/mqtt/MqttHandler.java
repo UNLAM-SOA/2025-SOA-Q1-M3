@@ -20,6 +20,8 @@ public class MqttHandler implements MqttCallback {
     public static final String NEXT_DOSE_MESSAGE_RECEIVED = "com.pastillero.application.mqtt.NEXT_DOSE_MESSAGE_RECEIVED";
     public static final String ACTUAL_STATUS_MESSAGE_RECEIVED = "com.pastillero.application.mqtt.ACTUAL_STATUS_MESSAGE_RECEIVED";
 
+    public static final String PILL_SCAN_MESSAGE_RECEIVED = "com.pastillero.application.mqtt.PILL_SCAN_MESSAGE_RECEIVED";
+
     public static final String CONNECTION_LOST = "com.pastillero.application.mqtt.CONNECTION_LOST";
 
 
@@ -70,7 +72,9 @@ public class MqttHandler implements MqttCallback {
         try {
             MqttMessage mqttMessage = new MqttMessage(message.getBytes());
             mqttMessage.setQos(2);
+            mqttMessage.setRetained(false);
             client.publish(topic, mqttMessage);
+
             Log.i("MQTT", "Message published " + message);
         } catch (Exception e) {
             Log.e("MQTT", e.getMessage());
@@ -101,6 +105,8 @@ public class MqttHandler implements MqttCallback {
     @Override
     public void messageArrived(String topic, MqttMessage message) {
         String payload = message.toString();
+        Log.e("MQTT", topic);
+        Log.e("MQTT", payload);
 
         switch (topic){
             case ConfigMQTT.NEXT_DOSE_TOPIC:
@@ -109,8 +115,33 @@ public class MqttHandler implements MqttCallback {
             case ConfigMQTT.ACTUAL_STATUS_TOPIC:
                 actualStatusMessageReceived(payload);
                 break;
+            case ConfigMQTT.PILL_SCAN_TOPIC:
+                pillStatusMessageReceived(payload);
+                break;
             default:
                 Log.e("MQTT", "Topic not found");
+        }
+
+    }
+    private void pillStatusMessageReceived(String payload) {
+        try {
+            JSONObject json = new JSONObject(payload);
+            JSONObject payloadContext = json.getJSONObject("context");
+            String message = payloadContext.getString("message");
+
+            context.getSharedPreferences("PastilleroPrefs", Context.MODE_PRIVATE)
+                    .edit()
+                    .putString("last_pill_status_received", message)
+                    .apply();
+
+
+            Intent i = new Intent(PILL_SCAN_MESSAGE_RECEIVED);
+            i.putExtra("message", message);
+            broadcastManager.sendBroadcast(i);
+
+
+        } catch (JSONException e) {
+            Log.e("MQTT", e.getMessage());
         }
 
     }

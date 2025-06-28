@@ -39,7 +39,7 @@
         </activity>
 
         <activity
-            android:name=".BuzzerControlActivity"
+            android:name=".PillsStatusActivity"
             android:exported="false"
             android:theme="@style/Theme.PastilleroApplication"
             android:parentActivityName=".MainActivity"

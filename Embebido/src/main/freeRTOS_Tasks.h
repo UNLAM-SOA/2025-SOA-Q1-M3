@@ -1,3 +1,4 @@
+#pragma once
 
 #include "timer_schedule.h"
 #include "setup_utils.h"
@@ -111,7 +112,6 @@ void notifyDoseUnnavailable(void *)
 void doubleNotify()
 {
   ulTaskNotifyTake(pdTRUE, portMAX_DELAY); // Espera a que se notifique la tarea
-  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 }
 void scanAllPills(void *)
 {
@@ -160,7 +160,7 @@ void scanAllPills(void *)
         Serial.print(", ");
     }
     Serial.println();
-    shortArrayToJsonString(scanStatus, JSON_STRING_LENGTH, scanStatusJson, sizeof(scanStatusJson));
+    shortArrayToJsonString(scanStatus, MAX_PILLS_PER_DAY * MAX_DAYS, scanStatusJson, sizeof(scanStatusJson));
     mqtt_publish_message(pill_scan_topic, 0, scanStatusJson); // Publica el estado del escaneo en MQTT
     xSemaphoreGive(scanningCompletedSemaphore);               // Indica que la tarea de escaneo ha finalizado
   }

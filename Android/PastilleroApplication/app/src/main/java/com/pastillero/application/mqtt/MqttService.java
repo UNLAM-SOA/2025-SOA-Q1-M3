@@ -80,7 +80,7 @@ public class MqttService extends Service {
             public void onSuccess() {
                 mqttHandler.subscribe(ConfigMQTT.NEXT_DOSE_TOPIC);
                 mqttHandler.subscribe(ConfigMQTT.ACTUAL_STATUS_TOPIC);
-                mqttHandler.subscribe(ConfigMQTT.PILL_STATUS_TOPIC);
+                mqttHandler.subscribe(ConfigMQTT.PILL_SCAN_TOPIC);
 
                 stopReconnectionAttempts();
 

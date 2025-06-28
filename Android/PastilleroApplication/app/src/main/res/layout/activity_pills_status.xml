@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#AEC8A4"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/title_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="44dp"
+        android:text="Pill Status"
+        android:textColor="#3B3B1A"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/status_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="36dp"
+        android:text="Take a look at your pills"
+        android:textAlignment="center"
+        android:textColor="#3B3B1A"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/title_text" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:orientation="horizontal">
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/scan_pills_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="36dp"
+        android:backgroundTint="#8A784E"
+        android:text="Scan Pill Storage"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/status_text" />
+
+    <TableLayout
+        android:id="@+id/pills_table"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:background="#E7EFC7"
+        android:padding="8dp"
+        android:stretchColumns="1,2,3"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/scan_pills_button">
+
+        <TableRow>
+
+            <TextView
+                android:text="Day"
+                android:textStyle="bold" />
+
+            <TextView
+                android:text="Morning"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:text="Afternoon"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:text="Night"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:id="@+id/day0"
+                android:text="Sunday"/>
+
+            <TextView
+                android:id="@+id/pill0_0"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+
+            <TextView
+                android:id="@+id/pill0_1"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:id="@+id/pill0_2"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:id="@+id/day1"
+                android:text="Monday" />
+
+            <TextView
+                android:id="@+id/pill1_0"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:id="@+id/pill1_1"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:id="@+id/pill1_2"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:id="@+id/day2"
+                android:text="Tuesday" />
+
+            <TextView
+                android:id="@+id/pill2_0"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:id="@+id/pill2_1"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:id="@+id/pill2_2"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:id="@+id/day3"
+                android:text="Wednesday" />
+
+            <TextView
+                android:id="@+id/pill3_0"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:id="@+id/pill3_1"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:id="@+id/pill3_2"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:id="@+id/day4"
+                android:text="Thursday" />
+
+            <TextView
+                android:id="@+id/pill4_0"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:id="@+id/pill4_1"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:id="@+id/pill4_2"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:id="@+id/day5"
+                android:text="Friday"/>
+
+            <TextView
+                android:id="@+id/pill5_0"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:id="@+id/pill5_1"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:id="@+id/pill5_2"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:id="@+id/day6"
+                android:text="Saturday" />
+
+            <TextView
+                android:id="@+id/pill6_0"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:id="@+id/pill6_1"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:id="@+id/pill6_2"
+                android:text="—"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+        </TableRow>
+    </TableLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

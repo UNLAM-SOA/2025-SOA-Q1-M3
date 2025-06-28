@@ -96,6 +96,8 @@ void state_machine()
 
     client.loop();
 
+
+
     get_new_event();
     if ((new_event >= 0) && (new_event < MAX_EVENTS) && (current_state >= 0) && (current_state < MAX_STATES))
     {
