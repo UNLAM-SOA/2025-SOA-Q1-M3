@@ -24,6 +24,8 @@ const char *pill_scan_topic = "/v1.6/devices/esp32/pill_scan";
 
 const char *set_volume_topic = "/v1.6/devices/esp32/volume";
 
+const char *skip_pill_topic = "/v1.6/devices/esp32/skip";
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 JsonQueue messagesQueue;
@@ -88,6 +90,7 @@ void mqtt_reconnect()
       Serial.println(" conectado");
       client.subscribe(pill_status_topic);
       client.subscribe(set_volume_topic);
+      client.subscribe(skip_pill_topic);
     }
   }
 }

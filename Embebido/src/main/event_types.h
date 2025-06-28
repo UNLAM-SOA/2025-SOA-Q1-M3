@@ -252,6 +252,10 @@ bool message_sensor()
     json_queue_dequeue(&messagesQueue, doc);
     new_event = EV_SCAN_ALL;
     return true;
+   } else if(type == "skip"){
+    json_queue_dequeue(&messagesQueue, doc);
+    new_event = EV_BUTTON_1_LONG_PRESS;
+    return true;
    }
   }
 

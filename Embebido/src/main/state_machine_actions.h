@@ -157,6 +157,9 @@ void doseSkipped()
  DebugPrint("Dose skipped...");
  writeLCD("Dose skipped\nReturning...");
  startMotorLeft();
+ char payload[50];
+ snprintf(payload, sizeof(payload), "Dose skipped");
+ mqtt_publish_message(actual_status_topic, AWAITING, payload);
 }
 void settingSchedule()
 {
@@ -192,9 +195,6 @@ void processMessage()
 
  json_queue_dequeue(&messagesQueue, doc);
  
- Serial.print("llege a processMessage");
- Serial.println(doc["context"]["type"].as<String>());
-
  if (doc.containsKey("context"))
  {
   JsonObject context = doc["context"];
@@ -222,6 +222,8 @@ void processMessage()
    default:
     Serial.print("Buzzer value not recognized");
    }
+  } else if(type == "skip"){
+
   }
  }
 }

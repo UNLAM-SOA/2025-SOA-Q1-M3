@@ -109,9 +109,9 @@ void setVolumeBuzzer(long volume)
  if (volume < MIN_VOL || volume > MAX_VOL)
  {
   DebugPrint("Error: Volumen fuera de rango (0-255).");
-  return; // Retorna si el volumen está fuera de rango
+  return; 
  }
- buzzerVolume = volume; // Asigna el nuevo volumen al zumbador
+ buzzerVolume = volume; 
 }
 
 void startMotorLeft()
@@ -145,7 +145,7 @@ void fisicalSetup()
  pinMode(PRESENCE_LED_2, OUTPUT); // Configura el LED del sensor de presencia 2 como salida
  pinMode(PRESENCE_LED_3, OUTPUT); // Configura el LED del sensor de presencia 3 como salida
 
- pinMode(LIMIT_SWITCH_PIN, INPUT_PULLUP); // Configura el fin de carrera 1 como entrada
+ pinMode(LIMIT_SWITCH_PIN, INPUT); // Configura el fin de carrera 1 como entrada
 
  pinMode(BUZZER_PIN, OUTPUT);       // Configura el zumbador como salida
  pinMode(POTENTIOMETER_PIN, INPUT); // Configura el potenciómetro como entrada
