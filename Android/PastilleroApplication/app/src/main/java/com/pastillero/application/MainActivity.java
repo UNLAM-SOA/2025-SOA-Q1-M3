@@ -19,11 +19,15 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
+import com.pastillero.application.mqtt.ConfigMQTT;
 import com.pastillero.application.mqtt.MqttHandler;
 import com.pastillero.application.mqtt.MqttService;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -36,9 +40,6 @@ public class MainActivity extends AppCompatActivity {
     private EditText volumeInput;
 
     private Button setVolumeButton;
-
-    private Button activateBuzzerButton;
-    private Button deactivateBuzzerButton;
 
     private Button goToBuzzerControlButton;
     public IntentFilter filterReceiveNextDoseMessage;
@@ -61,15 +62,35 @@ public class MainActivity extends AppCompatActivity {
 
         volumeInput = findViewById(R.id.volume_input);
         setVolumeButton = findViewById(R.id.set_volume_button);
-        activateBuzzerButton = findViewById(R.id.activate_buzzer_button);
-        deactivateBuzzerButton = findViewById(R.id.deactivate_buzzer_button);
 
-        goToBuzzerControlButton = findViewById(R.id.buzzer_control_button);
+
+        goToBuzzerControlButton = findViewById(R.id.pills_view_button);
+
+        setVolumeButton.setOnClickListener(v -> {
+            if(!volumeInput.getText().toString().isEmpty()) {
+                long volume = Long.parseLong(volumeInput.getText().toString());
+
+                try{
+                    JSONObject message = new JSONObject();
+                    JSONObject context = new JSONObject();
+                    context.put("type", "volume");
+                    message.put("value", volume);
+                    message.put("context", context);
+                    publishMessage(ConfigMQTT.VOLUME_TOPIC, message.toString());
+                } catch (JSONException e){
+                    Log.e("Pastillero", e.getMessage());
+                }
+            } else {
+                Toast.makeText(this, "Please enter a volume", Toast.LENGTH_SHORT).show();
+            }
+
+        });
 
         goToBuzzerControlButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, BuzzerControlActivity.class);
+            Intent intent = new Intent(MainActivity.this, PillsStatusActivity.class);
             startActivity(intent);
         });
+
 
         broadcastManager = LocalBroadcastManager.getInstance(this);
 
@@ -102,7 +123,6 @@ public class MainActivity extends AppCompatActivity {
     private void configBroadcastReceivers() {
         filterReceiveNextDoseMessage = new IntentFilter(MqttHandler.NEXT_DOSE_MESSAGE_RECEIVED);
         filterReceiveActualStatusMessage = new IntentFilter(MqttHandler.ACTUAL_STATUS_MESSAGE_RECEIVED);
-
 
         broadcastManager.registerReceiver(nextDoseReceiver, filterReceiveNextDoseMessage);
         broadcastManager.registerReceiver(actualStatusReceiver, filterReceiveActualStatusMessage);
@@ -193,5 +213,6 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(MqttService.EXTRA_MESSAGE, message);
         startService(intent);
     }
+
 
 }

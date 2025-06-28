@@ -145,7 +145,7 @@ void fisicalSetup()
  pinMode(PRESENCE_LED_2, OUTPUT); // Configura el LED del sensor de presencia 2 como salida
  pinMode(PRESENCE_LED_3, OUTPUT); // Configura el LED del sensor de presencia 3 como salida
 
- pinMode(LIMIT_SWITCH_PIN, INPUT_PULLUP); // Configura el fin de carrera 1 como entrada
+ pinMode(LIMIT_SWITCH_PIN, INPUT); // Configura el fin de carrera 1 como entrada
 
  pinMode(BUZZER_PIN, OUTPUT);       // Configura el zumbador como salida
  pinMode(POTENTIOMETER_PIN, INPUT); // Configura el potenciómetro como entrada

@@ -31,7 +31,7 @@ void initialize()
  xTaskCreate(notifyDoseUnnavailable, "notifyDoseUnnavailable", 2048, NULL, 1, NULL);
  xTaskCreate(scanAllPills, "scanAllPills", 8192, NULL, 1, &limitSwitchTaskHandler);
 
- attachInterrupt(LIMIT_SWITCH_PIN, detectMovingLimitSwitch, CHANGE);
+ attachInterrupt(LIMIT_SWITCH_PIN, detectMovingLimitSwitch, RISING);
  // attachInterrupt(LIMIT_SWITCH_PIN, detectLimitSwitch, CHANGE); // Configura la interrupción para el interruptor de límite
  attachInterrupt(BUTTON_PIN, detectButtonPress, FALLING); // Configura la interrupción para el botón
 
@@ -80,9 +80,8 @@ void stopReturning()
 {
  stopMotor();
  xSemaphoreGive(showTimerSemaphore);
- objetiveDay = NO_PILL_TOOKING;
- objetivePeriod = NO_PILL_TOOKING;
  DebugPrint("Stop returning...");
+ new_event = EV_LIMIT_SWITCH_START;
  limitSwitchPassed = 0; // Reinicia el contador de pasadas por el interruptor de límite
 }
 void awaitingTimer()
@@ -103,8 +102,7 @@ void awaitingTimer()
  xSemaphoreGive(showTimerSemaphore);
 }
 void moving()
-{
- limitSwitchPassed = 0; // Reinicia el contador de pasadas por el interruptor de límite
+{ 
  DebugPrint("Moving...");
  xSemaphoreTake(showTimerSemaphore, 0);
  writeLCD("Moving...");
@@ -189,6 +187,9 @@ void processMessage()
  StaticJsonDocument<JSON_DOC_SIZE> doc;
 
  json_queue_dequeue(&messagesQueue, doc);
+ 
+ Serial.print("llege a processMessage");
+ Serial.println(doc["context"]["type"].as<String>());
 
  if (doc.containsKey("context"))
  {

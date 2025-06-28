@@ -1,26 +1,37 @@
 package com.pastillero.application;
 
+import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.pastillero.application.mqtt.ConfigMQTT;
+import com.pastillero.application.mqtt.MqttHandler;
 import com.pastillero.application.mqtt.MqttService;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 
-public class BuzzerControlActivity extends AppCompatActivity implements SensorEventListener {
+public class PillsStatusActivity extends AppCompatActivity implements SensorEventListener {
+    private LocalBroadcastManager broadcastManager;
+    public IntentFilter filterReceivePillsStatus;
+
+    private PillScanReceiver pillScanReceiver = new PillScanReceiver();
     private SensorManager sensorManager;
     private Sensor accelerometer;
 
@@ -30,15 +41,35 @@ public class BuzzerControlActivity extends AppCompatActivity implements SensorEv
 
     private boolean isBuzzerActive = false;
 
+    private Button scanPillsButton;
+
     private TextView statusText;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_buzzer_control);
+        setContentView(R.layout.activity_pills_status);
 
         statusText = findViewById(R.id.status_text);
+        scanPillsButton = findViewById(R.id.scan_pills_button);
+
+        scanPillsButton.setOnClickListener(v -> {
+            try{
+                JSONObject message = new JSONObject();
+                JSONObject context = new JSONObject();
+                context.put("type", "scan");
+                message.put("value", 0);
+                message.put("context", context);
+                publishMessage(message.toString());
+            } catch (JSONException e) {
+                Log.e("Pastillero", e.getMessage());
+            }
+
+        });
+
+        broadcastManager = LocalBroadcastManager.getInstance(this);
+        configBroadcastReceivers();
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -73,7 +104,6 @@ public class BuzzerControlActivity extends AppCompatActivity implements SensorEv
             if(netAcceleration > SHAKE_THRESHOLD) {
                 if(currentTime - lastShakeTime > SHAKE_TIME_THRESHOLD) {
                     lastShakeTime = currentTime;
-                    toggleBuzzer();
                 }
             }
         }
@@ -82,31 +112,29 @@ public class BuzzerControlActivity extends AppCompatActivity implements SensorEv
     private void publishMessage(String message) {
         Intent intent = new Intent(this, MqttService.class);
         intent.setAction(MqttService.ACTION_PUBLISH);
-        intent.putExtra(MqttService.EXTRA_TOPIC, ConfigMQTT.BUZZER_TOPIC);
+        intent.putExtra(MqttService.EXTRA_TOPIC, ConfigMQTT.PILL_STATUS_TOPIC);
         intent.putExtra(MqttService.EXTRA_MESSAGE, message);
         startService(intent);
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
+    private void configBroadcastReceivers() {
+        filterReceivePillsStatus = new IntentFilter(MqttHandler.PILL_SCAN_MESSAGE_RECEIVED);
 
-    private void toggleBuzzer(){
-        try {
-
-            JSONObject message = new JSONObject();
-            JSONObject context = new JSONObject();
-            context.put("type", "buzzer");
-            message.put("value", isBuzzerActive ? 0 : 1);
-            message.put("context", context);
-            publishMessage(message.toString());
-            isBuzzerActive = !isBuzzerActive;
-            updateStatus();
-        } catch (JSONException e) {
-            Toast.makeText(this, "Error sending message", Toast.LENGTH_SHORT).show();
-        }
+        broadcastManager.registerReceiver(pillScanReceiver, filterReceivePillsStatus);
+        Log.i("Pastillero", "Registered receivers");
     }
 
-    private void updateStatus(){
-        String status = isBuzzerActive ? "Buzzer ON - Shake to turn off" : "Buzzer OFF - Shake to turn on";
-        statusText.setText(status);
+    public class PillScanReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String message = intent.getStringExtra("message");
+
+            // TODO: mostrar en pantalla los dias y sus pills
+
+            Log.i("Pastillero", "Received next dose message: " + message);
+
+        }
     }
 
     @Override

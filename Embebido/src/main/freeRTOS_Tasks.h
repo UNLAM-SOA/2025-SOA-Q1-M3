@@ -1,3 +1,4 @@
+#pragma once
 
 #include "timer_schedule.h"
 #include "setup_utils.h"

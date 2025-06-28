@@ -41,7 +41,7 @@ String states_s[MAX_STATES] = {
 action state_table_action[MAX_STATES][MAX_EVENTS] = {
     {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, modifyVolume, modifyVolume, processMessage, none, none, none, none, none, awaitingTimer},                                                 /*ST_INIT*/
     {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, reanudeCycle, none, none, none, none, none, modifyVolume, modifyVolume, processMessage, none, none, none, none, none, none},                                                  /*ST_REMINDER_CYCLE_ON_HOLD*/
-    {moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, none, none, none, pauseCycle, none, none, modifyVolume, modifyVolume, processMessage, none, none, none, none, startFullScan, none}, /*ST_AWAITING_REMINDER_TIME*/
+    {moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, none, none, none, pauseCycle, none, none, modifyVolume, modifyVolume, processMessage, none, none, none, none, none, none}, /*ST_AWAITING_REMINDER_TIME*/
     {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, modifyVolume, modifyVolume, processMessage, scanning, none, none, none, none, none},                                                      /*ST_MOVING_TO_PILL_POS*/
     {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, modifyVolume, modifyVolume, processMessage, none, none, pillDetected, noPillDetected, none, none},                                        /*ST_SCANNING_AT_PILL_POS*/
     {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, doseSkipped, none, none, modifyVolume, modifyVolume, processMessage, none, none, none, doseTaken, none, none},                                              /*ST_PILLS_DETECTED*/
@@ -95,6 +95,9 @@ void state_machine()
     }
 
     client.loop();
+
+    Serial.print("limit switch; ");
+    Serial.println(limitSwitchPassed);
 
     get_new_event();
     if ((new_event >= 0) && (new_event < MAX_EVENTS) && (current_state >= 0) && (current_state < MAX_STATES))

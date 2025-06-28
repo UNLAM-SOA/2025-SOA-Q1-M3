@@ -7,8 +7,8 @@
 
 #define MAX_EVENTS 36
 
-#define MAX_TYPE_EVENTS 7
-#define INVERSE_PRESENCE_SENSOR 1 // 0-->Hay pastilla, 1-->No hay pastilla
+#define MAX_TYPE_EVENTS 8
+#define INVERSE_PRESENCE_SENSOR 0 // 0-->Hay pastilla, 1-->No hay pastilla
 
 #define MAX_DAYS 7
 #define MAX_PILLS_PER_DAY 3
@@ -19,7 +19,7 @@
 #define LONG_PRESS_TIME 500 // Tiempo de presión larga en milisegundos
 
 #define ENABLE_PERIODICAL_TIME_EVENTS 1   // Para testear: Habilitar eventos de tiempo periódicos (0: deshabilitado, 1: habilitado)
-#define PERIODICAL_TIME_EVENTS_TIME 50000 // Para testear: Tiempo en milisegundos entre eventos de tiempo periódicos
+#define PERIODICAL_TIME_EVENTS_TIME 15000 // Para testear: Tiempo en milisegundos entre eventos de tiempo periódicos
 enum events
 {
  EV_TIME_SUNDAY_MORNING,
@@ -107,13 +107,14 @@ bool button_3_sensor();
 bool limit_switch_moving_sensor();
 bool presence_sensor();
 bool potentiometer_sensor();
+bool message_sensor();
 
 //----------------------------------------------
 // The setDayAndPeriod function calculates and sets the objectiveDay and objectivePeriod based on the value of new_event. If new_event exceeds the MAX_PERIODS threshold, it resets both values to -1; otherwise, it determines the day and period using division and modulo operations with MAX_PILLS_PER_DAY.
 void setDayAndPeriod();
 
 typedef bool (*eventType)();
-eventType event_type[MAX_TYPE_EVENTS] = {time_sensor, button_1_sensor, button_2_sensor, button_3_sensor, limit_switch_moving_sensor, presence_sensor, potentiometer_sensor};
+eventType event_type[MAX_TYPE_EVENTS] = {time_sensor, button_1_sensor, button_2_sensor, button_3_sensor, limit_switch_moving_sensor, presence_sensor, potentiometer_sensor, message_sensor};
 
 short objetiveDay = NO_PILL_TOOKING;
 short objetivePeriod = NO_PILL_TOOKING;
@@ -199,9 +200,11 @@ bool limit_switch_moving_sensor()
  }
 
  // Alcanza el principio
- if (limitSwitchPassed == LOW && !movingForward)
+ if (limitSwitchPassed <= LOW && !movingForward)
  {
   new_event = EV_LIMIT_SWITCH_START;
+  limitSwitchPassed = 0;
+  movingForward = true; 
   return true;
  }
  return false;
@@ -230,6 +233,7 @@ bool potentiometer_sensor()
 
 bool message_sensor()
 {
+
  if (!json_queue_is_empty(&messagesQueue))
  {
 

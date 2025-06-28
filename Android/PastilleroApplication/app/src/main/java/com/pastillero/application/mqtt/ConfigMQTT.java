@@ -10,7 +10,7 @@ public class ConfigMQTT {
     public static final String ACTUAL_STATUS_TOPIC = "/v1.6/devices/esp32/actual_status";
     public static final String PILL_STATUS_TOPIC = "/v1.6/devices/esp32/pill_status";
 
-    public static final String BUZZER_TOPIC = "/v1.6/devices/esp32/buzzer";
+    public static final String PILL_SCAN_TOPIC = "/v1.6/devices/esp32/pill_scan";
     public static final String VOLUME_TOPIC = "/v1.6/devices/esp32/volume";
 
 }

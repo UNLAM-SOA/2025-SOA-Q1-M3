@@ -1,6 +1,8 @@
 {
  "editor.tabSize": 1,
  "files.associations": {
-  "xlocale": "cpp"
+  "xlocale": "cpp",
+  "string": "cpp",
+  "cstddef": "cpp"
  }
 }
