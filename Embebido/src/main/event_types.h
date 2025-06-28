@@ -18,8 +18,8 @@
 #define NO_PILL_TOOKING -1
 #define LONG_PRESS_TIME 500 // Tiempo de presión larga en milisegundos
 
-#define ENABLE_PERIODICAL_TIME_EVENTS 1   // Para testear: Habilitar eventos de tiempo periódicos (0: deshabilitado, 1: habilitado)
-#define PERIODICAL_TIME_EVENTS_TIME 15000 // Para testear: Tiempo en milisegundos entre eventos de tiempo periódicos
+#define ENABLE_PERIODICAL_TIME_EVENTS 0   // Para testear: Habilitar eventos de tiempo periódicos (0: deshabilitado, 1: habilitado)
+#define PERIODICAL_TIME_EVENTS_TIME 60000 // Para testear: Tiempo en milisegundos entre eventos de tiempo periódicos
 enum events
 {
  EV_TIME_SUNDAY_MORNING,

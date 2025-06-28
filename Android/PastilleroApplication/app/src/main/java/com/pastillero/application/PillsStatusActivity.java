@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -12,6 +13,7 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,6 +25,7 @@ import com.pastillero.application.mqtt.ConfigMQTT;
 import com.pastillero.application.mqtt.MqttHandler;
 import com.pastillero.application.mqtt.MqttService;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -39,11 +42,8 @@ public class PillsStatusActivity extends AppCompatActivity implements SensorEven
     private static final int SHAKE_TIME_THRESHOLD = 500; // ms
     private long lastShakeTime = 0;
 
-    private boolean isBuzzerActive = false;
-
     private Button scanPillsButton;
 
-    private TextView statusText;
 
 
     @Override
@@ -51,7 +51,6 @@ public class PillsStatusActivity extends AppCompatActivity implements SensorEven
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pills_status);
 
-        statusText = findViewById(R.id.status_text);
         scanPillsButton = findViewById(R.id.scan_pills_button);
 
         scanPillsButton.setOnClickListener(v -> {
@@ -132,7 +131,25 @@ public class PillsStatusActivity extends AppCompatActivity implements SensorEven
 
             // TODO: mostrar en pantalla los dias y sus pills
 
-            Log.i("Pastillero", "Received next dose message: " + message);
+            try{
+                JSONArray pillsArray = new JSONArray(message);
+                int pillsPerDay = 3;
+                int days = 7;
+
+                for (int day = 0; day < days; day++) {
+                    for (int pill = 0; pill < pillsPerDay; pill++) {
+                        // Using getIdentifier to BUILD it depending on day and period
+                        int resId = getResources().getIdentifier(
+                                "pill" + day + "_" + pill, "id", getPackageName());
+                        TextView pillView = findViewById(resId);
+                        int status = pillsArray.getInt(day * pillsPerDay + pill);
+                        pillView.setText(status == 1 ? "🟩" : "🟥");
+                    }
+                }
+
+            }catch (JSONException e) {
+                Log.e("Pastillero", e.getMessage());
+            }
 
         }
     }
