@@ -109,9 +109,9 @@ void setVolumeBuzzer(long volume)
  if (volume < MIN_VOL || volume > MAX_VOL)
  {
   DebugPrint("Error: Volumen fuera de rango (0-255).");
-  return; // Retorna si el volumen está fuera de rango
+  return; 
  }
- buzzerVolume = volume; // Asigna el nuevo volumen al zumbador
+ buzzerVolume = volume; 
 }
 
 void startMotorLeft()

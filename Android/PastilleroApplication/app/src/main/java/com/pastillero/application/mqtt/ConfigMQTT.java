@@ -13,4 +13,6 @@ public class ConfigMQTT {
     public static final String PILL_SCAN_TOPIC = "/v1.6/devices/esp32/pill_scan";
     public static final String VOLUME_TOPIC = "/v1.6/devices/esp32/volume";
 
+    public static final String SKIP_PILL_TOPIC = "/v1.6/devices/esp32/skip";
+
 }

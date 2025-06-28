@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -41,10 +42,11 @@ public class MainActivity extends AppCompatActivity {
 
     private Button setVolumeButton;
 
-    private Button goToBuzzerControlButton;
+    private Button goToPillStatusButton;
+
+    private Button skipPillButton;
     public IntentFilter filterReceiveNextDoseMessage;
     public IntentFilter filterReceiveActualStatusMessage;
-    public IntentFilter filterReceivePillStatusMessage;
 
     public IntentFilter filterConnectionLost;
 
@@ -64,7 +66,21 @@ public class MainActivity extends AppCompatActivity {
         setVolumeButton = findViewById(R.id.set_volume_button);
 
 
-        goToBuzzerControlButton = findViewById(R.id.pills_view_button);
+        goToPillStatusButton = findViewById(R.id.pills_view_button);
+        skipPillButton = findViewById(R.id.skip_pill_button);
+
+        skipPillButton.setOnClickListener(v -> {
+            try{
+                JSONObject message = new JSONObject();
+                JSONObject context = new JSONObject();
+                context.put("type", "skip");
+                message.put("value", 1);
+                message.put("context", context);
+                publishMessage(ConfigMQTT.SKIP_PILL_TOPIC, message.toString());
+            } catch (JSONException e){
+                Log.e("Pastillero", e.getMessage());
+            }
+        });
 
         setVolumeButton.setOnClickListener(v -> {
             if(!volumeInput.getText().toString().isEmpty()) {
@@ -86,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-        goToBuzzerControlButton.setOnClickListener(v -> {
+        goToPillStatusButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, PillsStatusActivity.class);
             startActivity(intent);
         });
@@ -173,7 +189,13 @@ public class MainActivity extends AppCompatActivity {
 
             actualStatusText.setText(message);
 
-            if(value == 0) {
+            if(value == 1) {
+                skipPillButton.setVisibility(View.GONE);
+            } else if(value == 2){
+                skipPillButton.setVisibility(View.VISIBLE);
+            }
+
+            if(value == 2) {
                 actualStatusText.setTextColor(Color.RED);
             } else {
                 actualStatusText.setTextColor(Color.rgb(59,59,26));
@@ -203,9 +225,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // It creates an Intent to trigger the onStartCommand on the MQTT service
-    // so it publish the message using the service
-    // TODO: done for the 2nd deliverable
     private void publishMessage(String topic, String message) {
         Intent intent = new Intent(this, MqttService.class);
         intent.setAction(MqttService.ACTION_PUBLISH);
