@@ -11,7 +11,7 @@
 #define GMT_DIFFERENCE -4
 #define TIMEOUT_SETUP 1000
 #define TIMEOUT_GET_TIME 5
-#define DEBOUNCE_MICROS 100000
+#define DEBOUNCE_MICROS 250000
 #define BUTTON_QUEUE_SIZE 3
 
 const char *ssid = "Wokwi-GUEST";

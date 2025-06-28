@@ -31,7 +31,7 @@ void initialize()
  xTaskCreate(notifyDoseUnnavailable, "notifyDoseUnnavailable", 2048, NULL, 1, NULL);
  xTaskCreate(scanAllPills, "scanAllPills", 8192, NULL, 1, &limitSwitchTaskHandler);
 
- attachInterrupt(LIMIT_SWITCH_PIN, detectMovingLimitSwitch, RISING);
+ attachInterrupt(LIMIT_SWITCH_PIN, detectMovingLimitSwitch, FALLING);
  // attachInterrupt(LIMIT_SWITCH_PIN, detectLimitSwitch, CHANGE); // Configura la interrupción para el interruptor de límite
  attachInterrupt(BUTTON_PIN, detectButtonPress, FALLING); // Configura la interrupción para el botón
 

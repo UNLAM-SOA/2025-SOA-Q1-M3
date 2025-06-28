@@ -183,6 +183,8 @@ bool button_3_sensor()
 }
 bool limit_switch_moving_sensor()
 {
+    Serial.print("limit switch; ");
+    Serial.println(limitSwitchPassed);
  //Serial.println(String("Limit switch passed: ") + String(limitSwitchPassed));
  if (xSemaphoreTake(scanningCompletedSemaphore, 0) == pdTRUE) // Si se puede tomar el semáforo, se ha alcanzado el final del recorrido
  {
@@ -200,7 +202,7 @@ bool limit_switch_moving_sensor()
  }
 
  // Alcanza el principio
- if (limitSwitchPassed <= LOW && !movingForward)
+ if (limitSwitchPassed == LOW && !movingForward)
  {
   new_event = EV_LIMIT_SWITCH_START;
   limitSwitchPassed = 0;
@@ -278,6 +280,6 @@ void setDayAndPeriod()
  {
   return;
  }
- objetiveDay = ((new_event / MAX_PILLS_PER_DAY) * 2) + 4;
+ objetiveDay = ((new_event / MAX_PILLS_PER_DAY) + 1);
  objetivePeriod = new_event % MAX_PILLS_PER_DAY;
 }
