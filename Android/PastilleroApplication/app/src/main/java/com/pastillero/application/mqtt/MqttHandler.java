@@ -105,8 +105,6 @@ public class MqttHandler implements MqttCallback {
     @Override
     public void messageArrived(String topic, MqttMessage message) {
         String payload = message.toString();
-        Log.e("MQTT", topic);
-        Log.e("MQTT", payload);
 
         switch (topic){
             case ConfigMQTT.NEXT_DOSE_TOPIC:
@@ -179,6 +177,7 @@ public class MqttHandler implements MqttCallback {
             context.getSharedPreferences("PastilleroPrefs", Context.MODE_PRIVATE)
                     .edit()
                     .putString("last_actual_status_message", message)
+                    .putInt("last_actual_status_value", value)
                     .apply();
 
             Intent i = new Intent(ACTUAL_STATUS_MESSAGE_RECEIVED);

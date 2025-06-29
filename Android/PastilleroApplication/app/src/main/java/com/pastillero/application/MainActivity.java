@@ -65,7 +65,6 @@ public class MainActivity extends AppCompatActivity {
         volumeInput = findViewById(R.id.volume_input);
         setVolumeButton = findViewById(R.id.set_volume_button);
 
-
         goToPillStatusButton = findViewById(R.id.pills_view_button);
         skipPillButton = findViewById(R.id.skip_pill_button);
 
@@ -212,17 +211,19 @@ public class MainActivity extends AppCompatActivity {
             nextDoseTimeText.setText(lastNextDoseMessage);
         }
 
-        String lastStatusMessage = prefs.getString("last_status_message", null);
-        int lastStatusValue = prefs.getInt("last_status_value", -1);
+        String lastStatusMessage = prefs.getString("last_actual_status_message", null);
+        int lastStatusValue = prefs.getInt("last_actual_status_value", 0);
 
         if (lastStatusMessage != null) {
             actualStatusText.setText(lastStatusMessage);
-            if (lastStatusValue == 0) {
-                actualStatusText.setBackgroundColor(Color.GREEN);
-            } else {
-                actualStatusText.setBackgroundColor(Color.WHITE);
+            if(lastStatusValue == 1) {
+                skipPillButton.setVisibility(View.GONE);
+            } else if(lastStatusValue == 2){
+                skipPillButton.setVisibility(View.VISIBLE);
             }
         }
+
+
     }
 
     private void publishMessage(String topic, String message) {
