@@ -31,14 +31,20 @@ void initialize()
  xTaskCreate(notifyDoseUnnavailable, "notifyDoseUnnavailable", 2048, NULL, 1, NULL);
  xTaskCreate(scanAllPills, "scanAllPills", 8192, NULL, 1, &limitSwitchTaskHandler);
 
- attachInterrupt(LIMIT_SWITCH_PIN, detectMovingLimitSwitch, FALLING);
- // attachInterrupt(LIMIT_SWITCH_PIN, detectLimitSwitch, CHANGE); 
- attachInterrupt(BUTTON_PIN, detectButtonPress, FALLING); 
+ attachInterrupt(LIMIT_SWITCH_PIN, detectMovingLimitSwitch, CHANGE);
+ attachInterrupt(BUTTON_PIN, detectButtonPress, FALLING);
+ attachInterrupt(START_LIMIT_SWITCH_PIN, limitSwitchStart, CHANGE);
 
  mqtt_setup();
+
+ if (!isStartPressed())
+ {
+  startMotorLeft();
+ }
 }
 
 void noScheduleSet();
+void positioningEngine();
 void settingSchedule();
 void awaitingTimer();
 void scanning();
@@ -66,7 +72,9 @@ void modifyVolume()
  Serial.print("New volume: ");
  DebugPrint(potentiometerLastValue);
 }
-
+void positioningEngine()
+{
+}
 void doseTaken()
 {
  xSemaphoreTake(noPillNotificationSemaphore, 0);
@@ -82,7 +90,7 @@ void stopReturning()
  xSemaphoreGive(showTimerSemaphore);
  DebugPrint("Stop returning...");
  new_event = EV_LIMIT_SWITCH_START;
- limitSwitchPassed = 0; 
+ limitSwitchPassed = 0;
  char payload[50];
  snprintf(payload, sizeof(payload), "Awaiting timer");
  mqtt_publish_message(actual_status_topic, AWAITING, payload);
@@ -106,7 +114,7 @@ void awaitingTimer()
  xSemaphoreGive(showTimerSemaphore);
 }
 void moving()
-{ 
+{
  DebugPrint("Moving...");
  xSemaphoreTake(showTimerSemaphore, 0);
  writeLCD("Moving...");
@@ -194,7 +202,7 @@ void processMessage()
  StaticJsonDocument<JSON_DOC_SIZE> doc;
 
  json_queue_dequeue(&messagesQueue, doc);
- 
+
  if (doc.containsKey("context"))
  {
   JsonObject context = doc["context"];
@@ -222,8 +230,9 @@ void processMessage()
    default:
     Serial.print("Buzzer value not recognized");
    }
-  } else if(type == "skip"){
-
+  }
+  else if (type == "skip")
+  {
   }
  }
 }

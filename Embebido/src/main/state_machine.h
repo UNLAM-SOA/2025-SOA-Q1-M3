@@ -4,7 +4,7 @@
 #include "state_machine_actions.h"
 #include "./Drivers/MQTT_Driver.h"
 
-#define MAX_STATES 9
+#define MAX_STATES 10
 
 #define TIME_DIFF_BETWEEN_EXEC_CYCLES 50
 
@@ -16,6 +16,7 @@ void (*funcReset)(void) = 0;
 enum states
 {
     ST_INIT,
+    ST_INITIAL_RETURNING,
     ST_REMINDER_CYCLE_ON_HOLD,
     ST_AWAITING_REMINDER_TIME,
     ST_MOVING_TO_PILL_POS,
@@ -28,6 +29,7 @@ enum states
 
 String states_s[MAX_STATES] = {
     "ST_INIT",
+    "ST_INITIAL_RETURNING",
     "ST_REMINDER_CYCLE_ON_HOLD",
     "ST_AWAITING_REMINDER_TIME",
     "ST_MOVING_TO_PILL_POS",
@@ -39,7 +41,8 @@ String states_s[MAX_STATES] = {
 };
 
 action state_table_action[MAX_STATES][MAX_EVENTS] = {
-    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, modifyVolume, modifyVolume, processMessage, none, none, none, none, none, awaitingTimer},                                                 /*ST_INIT*/
+    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, modifyVolume, modifyVolume, processMessage, none, none, none, none, none, positioningEngine},                                             /*ST_INIT*/
+    {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, awaitingTimer, none, none, none, none},                                                                           /*ST_INITIAL_RETURNING*/
     {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, reanudeCycle, none, none, none, none, none, modifyVolume, modifyVolume, processMessage, none, none, none, none, none, none},                                                  /*ST_REMINDER_CYCLE_ON_HOLD*/
     {moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, moving, none, none, none, pauseCycle, none, none, modifyVolume, modifyVolume, processMessage, none, none, none, none, startFullScan, none}, /*ST_AWAITING_REMINDER_TIME*/
     {none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, modifyVolume, modifyVolume, processMessage, scanning, none, none, none, none, none},                                                      /*ST_MOVING_TO_PILL_POS*/
@@ -51,7 +54,8 @@ action state_table_action[MAX_STATES][MAX_EVENTS] = {
 };
 
 states state_table_next_state[MAX_STATES][MAX_EVENTS] = {
-    {ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_AWAITING_REMINDER_TIME},                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       /*ST_INIT*/
+    {ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INIT, ST_INITIAL_RETURNING},                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            /*ST_INIT*/
+    {ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_AWAITING_REMINDER_TIME, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING, ST_INITIAL_RETURNING},                                                                                                                                                                                /*ST_INITIAL_RETURNING*/
     {ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_AWAITING_REMINDER_TIME, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD, ST_REMINDER_CYCLE_ON_HOLD}, /*ST_REMINDER_CYCLE_ON_HOLD*/
     {ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_AWAITING_REMINDER_TIME, ST_AWAITING_REMINDER_TIME, ST_AWAITING_REMINDER_TIME, ST_REMINDER_CYCLE_ON_HOLD, ST_AWAITING_REMINDER_TIME, ST_AWAITING_REMINDER_TIME, ST_AWAITING_REMINDER_TIME, ST_AWAITING_REMINDER_TIME, ST_AWAITING_REMINDER_TIME, ST_AWAITING_REMINDER_TIME, ST_AWAITING_REMINDER_TIME, ST_AWAITING_REMINDER_TIME, ST_AWAITING_REMINDER_TIME, ST_SCANNING_ALL_PILLS, ST_AWAITING_REMINDER_TIME},                                                                                         /*ST_AWAITING_REMINDER_TIME*/
     {ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_SCANNING_AT_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS, ST_MOVING_TO_PILL_POS},                                                                                                                                               /*ST_MOVING_TO_PILL_POS*/
@@ -95,8 +99,6 @@ void state_machine()
     }
 
     client.loop();
-
-
 
     get_new_event();
     if ((new_event >= 0) && (new_event < MAX_EVENTS) && (current_state >= 0) && (current_state < MAX_STATES))

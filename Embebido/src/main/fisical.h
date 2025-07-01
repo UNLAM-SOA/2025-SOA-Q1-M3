@@ -17,12 +17,13 @@
 #define PRESENCE_PIN_2 35
 #define PRESENCE_PIN_3 32
 
-#define PRESENCE_LED_1 27
+#define PRESENCE_LED_1 12
 #define PRESENCE_LED_2 14
-#define PRESENCE_LED_3 12
+#define PRESENCE_LED_3 27
 
 // Fines de carrera
 #define LIMIT_SWITCH_PIN 25
+#define START_LIMIT_SWITCH_PIN 5
 
 #define BUZZER_PIN 13
 #define POTENTIOMETER_PIN 33
@@ -52,6 +53,7 @@ short readPotentiometer();
 
 short buzzerVolume = 255;
 short potentiometerLastValue;
+volatile short startPressed;
 
 short readPresenceSensor_TM()
 {
@@ -109,11 +111,15 @@ void setVolumeBuzzer(long volume)
  if (volume < MIN_VOL || volume > MAX_VOL)
  {
   DebugPrint("Error: Volumen fuera de rango (0-255).");
-  return; 
+  return;
  }
- buzzerVolume = volume; 
+ buzzerVolume = volume;
 }
 
+short isStartPressed()
+{
+ return digitalRead(START_LIMIT_SWITCH_PIN) == LOW;
+}
 void startMotorLeft()
 {
  startMotorLeft(EN_PIN_PUENTE_H, IN1_PIN_PUENTE_H, IN2_PIN_PUENTE_H); // Inicia el motor izquierdo
@@ -146,7 +152,7 @@ void fisicalSetup()
  pinMode(PRESENCE_LED_3, OUTPUT); // Configura el LED del sensor de presencia 3 como salida
 
  pinMode(LIMIT_SWITCH_PIN, INPUT_PULLUP); // Configura el fin de carrera 1 como entrada
-
+ pinMode(START_LIMIT_SWITCH_PIN, INPUT_PULLUP);
  pinMode(BUZZER_PIN, OUTPUT);       // Configura el zumbador como salida
  pinMode(POTENTIOMETER_PIN, INPUT); // Configura el potenciómetro como entrada
 

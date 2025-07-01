@@ -11,11 +11,11 @@
 #define GMT_DIFFERENCE -4
 #define TIMEOUT_SETUP 1000
 #define TIMEOUT_GET_TIME 5
-#define DEBOUNCE_MICROS 250000
+#define DEBOUNCE_MICROS 50000
 #define BUTTON_QUEUE_SIZE 3
 
-const char *ssid = "Wokwi-GUEST";
-const char *password = "";
+const char *ssid = "TP_LINK_97CC";
+const char *password = "serafin1";
 
 const char *ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = GMT_DIFFERENCE * HOUR_TO_SECONDS;
@@ -99,9 +99,12 @@ void IRAM_ATTR detectMovingLimitSwitch()
  uint64_t interruptTime = esp_timer_get_time();
  if (interruptTime - lastInterruptTime > DEBOUNCE_MICROS)
  {
-  if (objetiveDay == NO_PILL_TOOKING)
+  if (new_event == 9)
   {
    xTaskNotifyGive(limitSwitchTaskHandler);
+  }
+  else if (new_event == 1)
+  {
   }
   else
   {
@@ -138,6 +141,21 @@ void IRAM_ATTR detectButtonPress()
  if (xHigherPriorityTaskWoken == pdTRUE)
  {
   portYIELD_FROM_ISR();
+ }
+}
+
+volatile unsigned long startLt = 0; // Last time the limit switch was pressed
+void limitSwitchStart()
+{
+ unsigned long ct = micros();
+ if (ct - startLt > DEBOUNCE_MICROS)
+ {
+  if (!startPressed)
+  {
+   stopMotor();
+  }
+  startPressed = !startPressed;
+  startLt = ct;
  }
 }
 
