@@ -8,7 +8,7 @@
 #define MAX_EVENTS 36
 
 #define MAX_TYPE_EVENTS 8
-#define INVERSE_PRESENCE_SENSOR 0 // 0-->Hay pastilla, 1-->No hay pastilla
+#define INVERSE_PRESENCE_SENSOR 1 // 0-->Hay pastilla, 1-->No hay pastilla
 
 #define MAX_DAYS 7
 #define MAX_PILLS_PER_DAY 3
@@ -170,6 +170,7 @@ bool button_1_sensor()
  {
   return false;
  }
+ return false;
 }
 bool button_2_sensor()
 {
@@ -183,9 +184,17 @@ bool button_3_sensor()
 }
 bool limit_switch_moving_sensor()
 {
-    Serial.print("limit switch; ");
-    Serial.println(limitSwitchPassed);
- //Serial.println(String("Limit switch passed: ") + String(limitSwitchPassed));
+ Serial.print("limit switch; ");
+ Serial.println(limitSwitchPassed);
+ Serial.println("mirando: " + String(digitalRead(START_LIMIT_SWITCH_PIN)));
+ if (isStartPressed())
+ {
+  Serial.println("Start pressed");
+  new_event = EV_LIMIT_SWITCH_START;
+  limitSwitchPassed = 0;
+  return true;
+ }
+ // Serial.println(String("Limit switch passed: ") + String(limitSwitchPassed));
  if (xSemaphoreTake(scanningCompletedSemaphore, 0) == pdTRUE) // Si se puede tomar el semáforo, se ha alcanzado el final del recorrido
  {
   new_event = EV_LIMIT_SWITCH_START;
@@ -206,7 +215,7 @@ bool limit_switch_moving_sensor()
  {
   new_event = EV_LIMIT_SWITCH_START;
   limitSwitchPassed = 0;
-  movingForward = true; 
+  movingForward = true;
   return true;
  }
  return false;
@@ -252,7 +261,9 @@ bool message_sensor()
     json_queue_dequeue(&messagesQueue, doc);
     new_event = EV_SCAN_ALL;
     return true;
-   } else if(type == "skip"){
+   }
+   else if (type == "skip")
+   {
     json_queue_dequeue(&messagesQueue, doc);
     new_event = EV_BUTTON_1_LONG_PRESS;
     return true;
@@ -284,6 +295,6 @@ void setDayAndPeriod()
  {
   return;
  }
- objetiveDay = ((new_event / MAX_PILLS_PER_DAY) + 1);
+ objetiveDay = ((new_event / MAX_PILLS_PER_DAY) * 2) + 4;
  objetivePeriod = new_event % MAX_PILLS_PER_DAY;
 }

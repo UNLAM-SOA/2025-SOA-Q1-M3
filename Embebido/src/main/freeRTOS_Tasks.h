@@ -112,6 +112,7 @@ void notifyDoseUnnavailable(void *)
 void doubleNotify()
 {
   ulTaskNotifyTake(pdTRUE, portMAX_DELAY); // Espera a que se notifique la tarea
+  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 }
 void scanAllPills(void *)
 {
