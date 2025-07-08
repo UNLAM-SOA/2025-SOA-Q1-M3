@@ -118,6 +118,6 @@ void state_machine()
     }
     else
     {
-        DebugPrint("Error: Estado o evento fuera de rango." + String(current_state) + " " + String(new_event));
+        DebugPrintln("Error: Estado o evento fuera de rango." + String(current_state) + " " + String(new_event));
     }
 }

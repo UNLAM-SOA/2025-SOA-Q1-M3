@@ -4,6 +4,7 @@
 #include "fisical.h"
 #include "freeRTOS_Objects.h"
 #include "Drivers/MQTT_Driver.h"
+#include "debug.h"
 
 #define MAX_EVENTS 36
 
@@ -16,7 +17,7 @@
 #define PRECENSE_THRESHOLD 100 // Valor de umbral para detectar la presencia de pastillas
 #define PONTECIOMETER_THRESHOLD 5
 #define NO_PILL_TOOKING -1
-#define LONG_PRESS_TIME 500 // Tiempo de presión larga en milisegundos
+#define LONG_PRESS_TIME 500000 // Tiempo de presión larga en microsegundos
 
 #define ENABLE_PERIODICAL_TIME_EVENTS 1   // Para testear: Habilitar eventos de tiempo periódicos (0: deshabilitado, 1: habilitado)
 #define PERIODICAL_TIME_EVENTS_TIME 15000 // Para testear: Tiempo en milisegundos entre eventos de tiempo periódicos
@@ -129,15 +130,15 @@ bool time_sensor()
 {
  if (ENABLE_PERIODICAL_TIME_EVENTS) // If periodic time events are enabled
  {
-  if ((millis() - lct_time > PERIODICAL_TIME_EVENTS_TIME)) // If the time since the last event is greater than the defined time
+  if ((millis() - lct_time > PERIODICAL_TIME_EVENTS_TIME))
   {
-   lct_time = millis();                // Update the last cycle time
-   new_event = EV_TIME_THURSDAY_NIGHT; // Set the event to continue
+   lct_time = millis();
+   new_event = EV_TIME_THURSDAY_NIGHT;
    return true;
   }
  }
  int queueValue;
- if (timeEventsQueue != NULL && xQueueReceive(timeEventsQueue, &queueValue, 0) == pdTRUE) // If there is a value in the queue
+ if (timeEventsQueue != NULL && xQueueReceive(timeEventsQueue, &queueValue, 0) == pdTRUE)
  {
   new_event = (events)queueValue;
   return true;
@@ -150,8 +151,8 @@ unsigned long lastButtonPressed = LOW;
 short buttonAmountPressed = 0;
 bool button_1_sensor()
 {
- unsigned long currentTime = micros();                                                                               // Get the current time
- if (!xQueuePeek(buttonEventsQueue, &ctStartPressed, 0) && currentTime - lastButtonPressed > LONG_PRESS_TIME * 1000) // Peek the previous button state from the queue
+ unsigned long currentTime = micros();
+ if (!xQueuePeek(buttonEventsQueue, &ctStartPressed, 0) && currentTime - lastButtonPressed > LONG_PRESS_TIME)
  {
   if (buttonAmountPressed == 1)
    new_event = EV_BUTTON_1_TAP;
@@ -166,10 +167,6 @@ bool button_1_sensor()
  if (xQueueReceive(buttonEventsQueue, &lastButtonPressed, 0) == pdTRUE)
   buttonAmountPressed++;
 
- if (currentTime - lastButtonPressed < LONG_PRESS_TIME * 1000)
- {
-  return false;
- }
  return false;
 }
 bool button_2_sensor()
@@ -184,21 +181,20 @@ bool button_3_sensor()
 }
 bool limit_switch_moving_sensor()
 {
- Serial.print("limit switch; ");
- Serial.println(limitSwitchPassed);
- Serial.println("mirando: " + String(digitalRead(START_LIMIT_SWITCH_PIN)));
+ DebugPrint("limit switch; ");
+ DebugPrintln(limitSwitchPassed);
+ DebugPrintln("mirando: " + String(digitalRead(START_LIMIT_SWITCH_PIN)));
  if (isStartPressed())
  {
-  Serial.println("Start pressed");
+  DebugPrintln("Start pressed");
   new_event = EV_LIMIT_SWITCH_START;
   limitSwitchPassed = 0;
   return true;
  }
- // Serial.println(String("Limit switch passed: ") + String(limitSwitchPassed));
  if (xSemaphoreTake(scanningCompletedSemaphore, 0) == pdTRUE) // Si se puede tomar el semáforo, se ha alcanzado el final del recorrido
  {
   new_event = EV_LIMIT_SWITCH_START;
-  return true; // Se ha alcanzado el final del recorrido
+  return true;
  }
  if (objetiveDay == NO_PILL_TOOKING) // Si no hay un ciclo de recordatorio activo, no se detecta el interruptor de límite en movimiento
   return false;

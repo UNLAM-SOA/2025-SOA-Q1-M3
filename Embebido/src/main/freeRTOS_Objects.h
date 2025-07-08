@@ -1,4 +1,4 @@
-#define IS_FISICAL 0
+#define IS_FISICAL 1
 
 #ifndef FREERTOS_OBJECTS_H
 #define FREERTOS_OBJECTS_H

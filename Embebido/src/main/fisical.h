@@ -2,14 +2,14 @@
 // This file encapsulates the physical layer of the system, including the buttons, presence sensors, limit switches, and buzzer.
 //  It provides functions to read the state of these components and to write to the buzzer.
 #include "debug.h"
-#include "Drivers/LCD_Driver.h"           // Librería para manejar el LCD
-#include "Drivers/SD_Driver.h"            // Librería para manejar la SD
-#include "Drivers/CNY70_Driver.h"         // Librería para manejar el sensor de presencia CNY70
-#include "Drivers/Buzzer_Driver.h"        // Librería para manejar el zumbador
-#include "Drivers/Potentiometer_Driver.h" // Librería para manejar el potenciómetro
-#include "Drivers/LimitSwitch_Driver.h"   // Librería para manejar el fin de carrera
-#include "Drivers/Button_Driver.h"        // Librería para manejar los botones
-#include "Drivers/Engine_Driver.h"        // Librería para manejar el motor
+#include "Drivers/LCD_Driver.h"
+#include "Drivers/SD_Driver.h"
+#include "Drivers/CNY70_Driver.h"
+#include "Drivers/Buzzer_Driver.h"
+#include "Drivers/Potentiometer_Driver.h"
+#include "Drivers/LimitSwitch_Driver.h"
+#include "Drivers/Button_Driver.h"
+#include "Drivers/Engine_Driver.h"
 
 // Variables y valores
 #define BUTTON_PIN 26
@@ -34,10 +34,6 @@
 #define IN1_PIN_PUENTE_H 4
 #define IN2_PIN_PUENTE_H 2
 #define EN_PIN_PUENTE_H 15
-
-#define LCD_ADDRESS 0x27 // Dirección I2C del LCD
-#define LCD_COLUMNS 16   // Número de columnas del LCD
-#define LCD_ROWS 2       // Número de filas del LCD
 
 #define MIN_VOL 0
 #define MAX_VOL 255
@@ -70,7 +66,7 @@ short readPresenceSensor_TN()
 
 short readLimitSwitch()
 {
- return readLimitSwitch(LIMIT_SWITCH_PIN); // Lee el valor del fin de carrera
+ return readLimitSwitch(LIMIT_SWITCH_PIN);
 }
 
 short readButton()
@@ -80,12 +76,12 @@ short readButton()
 
 void startBuzzer()
 {
- writeBuzzer(BUZZER_PIN, buzzerVolume); // Enciende el zumbador con el volumen especificado
+ writeBuzzer(BUZZER_PIN, buzzerVolume);
 }
 
 void stopBuzzer()
 {
- writeBuzzer(BUZZER_PIN, 0); // Detiene el zumbador
+ writeBuzzer(BUZZER_PIN, 0);
 }
 
 short readPotentiometer()
@@ -110,7 +106,7 @@ void setVolumeBuzzer(long volume)
 {
  if (volume < MIN_VOL || volume > MAX_VOL)
  {
-  DebugPrint("Error: Volumen fuera de rango (0-255).");
+  DebugPrintln("Error: Volumen fuera de rango (0-255).");
   return;
  }
  buzzerVolume = volume;
@@ -122,16 +118,16 @@ short isStartPressed()
 }
 void startMotorLeft()
 {
- startMotorLeft(EN_PIN_PUENTE_H, IN1_PIN_PUENTE_H, IN2_PIN_PUENTE_H); // Inicia el motor izquierdo
+ startMotorLeft(EN_PIN_PUENTE_H, IN1_PIN_PUENTE_H, IN2_PIN_PUENTE_H);
 }
 
 void startMotorRight()
 {
- startMotorRight(EN_PIN_PUENTE_H, IN1_PIN_PUENTE_H, IN2_PIN_PUENTE_H); // Inicia el motor derecho
+ startMotorRight(EN_PIN_PUENTE_H, IN1_PIN_PUENTE_H, IN2_PIN_PUENTE_H);
 }
 void stopMotor()
 {
- stopMotor(EN_PIN_PUENTE_H, IN1_PIN_PUENTE_H, IN2_PIN_PUENTE_H); // Detiene el motor
+ stopMotor(EN_PIN_PUENTE_H, IN1_PIN_PUENTE_H, IN2_PIN_PUENTE_H);
 }
 
 void potentiometerSetup()
@@ -141,25 +137,25 @@ void potentiometerSetup()
 
 void fisicalSetup()
 {
- pinMode(BUTTON_PIN, INPUT_PULLDOWN); // Configura el botón 1 como entrada
+ pinMode(BUTTON_PIN, INPUT_PULLDOWN);
 
- pinMode(PRESENCE_PIN_1, INPUT); // Configura el sensor de presencia 1 como entrada
- pinMode(PRESENCE_PIN_2, INPUT); // Configura el sensor de presencia 2 como entrada
- pinMode(PRESENCE_PIN_3, INPUT); // Configura el sensor de presencia 3 como entrada
+ pinMode(PRESENCE_PIN_1, INPUT);
+ pinMode(PRESENCE_PIN_2, INPUT);
+ pinMode(PRESENCE_PIN_3, INPUT);
 
- pinMode(PRESENCE_LED_1, OUTPUT); // Configura el LED del sensor de presencia 1 como salida
- pinMode(PRESENCE_LED_2, OUTPUT); // Configura el LED del sensor de presencia 2 como salida
- pinMode(PRESENCE_LED_3, OUTPUT); // Configura el LED del sensor de presencia 3 como salida
+ pinMode(PRESENCE_LED_1, OUTPUT);
+ pinMode(PRESENCE_LED_2, OUTPUT);
+ pinMode(PRESENCE_LED_3, OUTPUT);
 
- pinMode(LIMIT_SWITCH_PIN, INPUT_PULLUP); // Configura el fin de carrera 1 como entrada
+ pinMode(LIMIT_SWITCH_PIN, INPUT_PULLUP);
  pinMode(START_LIMIT_SWITCH_PIN, INPUT_PULLUP);
- pinMode(BUZZER_PIN, OUTPUT);       // Configura el zumbador como salida
- pinMode(POTENTIOMETER_PIN, INPUT); // Configura el potenciómetro como entrada
+ pinMode(BUZZER_PIN, OUTPUT);
+ pinMode(POTENTIOMETER_PIN, INPUT);
 
  pinMode(IN1_PIN_PUENTE_H, OUTPUT);
  pinMode(IN2_PIN_PUENTE_H, OUTPUT);
  pinMode(EN_PIN_PUENTE_H, OUTPUT);
- setupLCD(); // Inicializa la pantalla LCD
+ setupLCD();
 
  potentiometerSetup();
 }

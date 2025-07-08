@@ -7,6 +7,7 @@
 #include "fisical.h"
 #include "freeRTOS_Tasks.h"
 #include "setup_utils.h"
+#include "debug.h"
 
 typedef void (*action)();
 
@@ -69,8 +70,8 @@ void modifyVolume()
 {
  setVolumeBuzzer(potentiometerLastValue);
 
- Serial.print("New volume: ");
- DebugPrint(potentiometerLastValue);
+ DebugPrint("New volume: ");
+ DebugPrintln(potentiometerLastValue);
 }
 void positioningEngine()
 {
@@ -88,7 +89,7 @@ void stopReturning()
 {
  stopMotor();
  xSemaphoreGive(showTimerSemaphore);
- DebugPrint("Stop returning...");
+ DebugPrintln("Stop returning...");
  new_event = EV_LIMIT_SWITCH_START;
  limitSwitchPassed = 0;
  char payload[50];
@@ -110,12 +111,12 @@ void awaitingTimer()
   awaiting = true;
  }
 
- DebugPrint("Awaiting timer...");
+ DebugPrintln("Awaiting timer...");
  xSemaphoreGive(showTimerSemaphore);
 }
 void moving()
 {
- DebugPrint("Moving...");
+ DebugPrintln("Moving...");
  xSemaphoreTake(showTimerSemaphore, 0);
  writeLCD("Moving...");
 
@@ -135,7 +136,7 @@ void scanning()
  setLeds[objetivePeriod](LOW);
  stopBuzzer();
  stopMotor();
- DebugPrint("Scanning");
+ DebugPrintln("Scanning");
 }
 void pillDetected()
 {
@@ -145,7 +146,7 @@ void pillDetected()
  mqtt_publish_message(pill_status_topic, 0, payload);
  writeLCD("Pill detected");
  xSemaphoreGive(notificationSemaphore);
- DebugPrint("Pill detected...");
+ DebugPrintln("Pill detected...");
 }
 void noPillDetected()
 {
@@ -153,7 +154,7 @@ void noPillDetected()
  xSemaphoreTake(notificationSemaphore, 0);
  snprintf(payload, sizeof(payload), "No pill detected");
  mqtt_publish_message(pill_status_topic, 0, payload);
- DebugPrint("No pill detected...");
+ DebugPrintln("No pill detected...");
  xSemaphoreGive(noPillNotificationSemaphore);
 }
 void doseSkipped()
@@ -162,7 +163,7 @@ void doseSkipped()
  xSemaphoreTake(noPillNotificationSemaphore, 0);
  setLeds[objetivePeriod](LOW);
  stopBuzzer();
- DebugPrint("Dose skipped...");
+ DebugPrintln("Dose skipped...");
  writeLCD("Dose skipped\nReturning...");
  startMotorLeft();
  char payload[50];
@@ -171,12 +172,12 @@ void doseSkipped()
 }
 void settingSchedule()
 {
- DebugPrint("Setting schedule...");
+ DebugPrintln("Setting schedule...");
  xSemaphoreGive(showTimerSemaphore);
 }
 void noScheduleSet()
 {
- DebugPrint("No schedule set...");
+ DebugPrintln("No schedule set...");
  xSemaphoreGive(showTimerSemaphore);
 }
 
@@ -191,7 +192,7 @@ void startFullScan()
  xSemaphoreTake(showTimerSemaphore, 0);
  writeLCD("Full scan started\nPlease wait...");
  xTaskNotifyGive(limitSwitchTaskHandler);
- Serial.println("Notificaciones enviadas");
+ DebugPrintln("Notificaciones enviadas");
 }
 void finishScan()
 {
@@ -228,7 +229,7 @@ void processMessage()
     startBuzzer();
     break;
    default:
-    Serial.print("Buzzer value not recognized");
+    DebugPrint("Buzzer value not recognized");
    }
   }
   else if (type == "skip")
