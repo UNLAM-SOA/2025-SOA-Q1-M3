@@ -40,7 +40,7 @@ void searchNextSchedule(tm *timeinfo)
  int currentWeekDay = timeinfo->tm_wday; // Día actual de la semana (0-6, donde 0 es domingo)
  int currentHour = timeinfo->tm_hour;    // Hora actual (0-23)
  int currentMinute = timeinfo->tm_min;   // Minuto actual (0-59)
- Serial.println(currentMinute);
+ DebugPrintln(currentMinute);
  for (int i = 0; i < MAX_PERIODS; i++)
  {
   if (schedule[i].tm_wday < currentWeekDay)
@@ -55,8 +55,8 @@ void searchNextSchedule(tm *timeinfo)
   }
  }
  nextPeriod = firstScheduleAvailable();
- DebugPrint("nextPeriod: ");
- DebugPrint(nextPeriod);
+ DebugPrintln("nextPeriod: ");
+ DebugPrintln(nextPeriod);
 }
 
 int timeUntilNextSchedule(tm *timeinfo, tm *schedule)

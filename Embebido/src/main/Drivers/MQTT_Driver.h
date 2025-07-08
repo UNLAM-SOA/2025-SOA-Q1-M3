@@ -4,6 +4,7 @@
 #include <WiFi.h>
 #include <ArduinoJson.h>
 #include "Queue.h"
+#include "../debug.h"
 
 #define NO_VALUE 0
 #define AWAITING 1
@@ -36,31 +37,37 @@ void callback(char *topic, byte *payload, unsigned int length)
   memcpy(message, payload, length);
   message[length] = '\0';
 
-
   StaticJsonDocument<JSON_DOC_SIZE> doc;
   DeserializationError error = deserializeJson(doc, message);
 
   if (error)
   {
-    Serial.print("Error parsing json: ");
-    Serial.println(error.f_str());
+    DebugPrint("Error parsing json: ");
+    DebugPrintln(error.f_str());
     return;
   }
 
-  if (doc.containsKey("timestamp")) {
-    
-    int64_t msgTimestamp = doc["timestamp"];
-    time_t now = time(nullptr);  
+  if (doc.containsKey("timestamp"))
+  {
 
-    if (now == -1) {
-      Serial.println("RTC time not available, no timestamp filtering");
-    } else {
-      int64_t diff = now - (msgTimestamp/1000);
-      if (diff > MAX_MSG_AGE) {
+    int64_t msgTimestamp = doc["timestamp"];
+    time_t now = time(nullptr);
+
+    if (now == -1)
+    {
+      DebugPrintln("RTC time not available, no timestamp filtering");
+    }
+    else
+    {
+      int64_t diff = now - (msgTimestamp / 1000);
+      if (diff > MAX_MSG_AGE)
+      {
         return;
       }
     }
-  } else {
+  }
+  else
+  {
     return;
   }
 
@@ -80,14 +87,14 @@ void mqtt_reconnect()
 
   while (!client.connected())
   {
-    Serial.print("Intentando conexión MQTT...");
+    DebugPrint("Intentando conexión MQTT...");
     long r = random(1000);
     sprintf(clientId, "clientId-%ld", r);
 
     if (client.connect(clientId, mqtt_user, mqtt_pass))
     {
-      Serial.print(clientId);
-      Serial.println(" conectado");
+      DebugPrint(clientId);
+      DebugPrintln(" conectado");
       client.subscribe(pill_status_topic);
       client.subscribe(set_volume_topic);
       client.subscribe(skip_pill_topic);
@@ -109,9 +116,9 @@ void mqtt_publish_message(const char *topic, int value, const char *context = nu
 
   serializeJson(doc, buffer);
 
-  Serial.println("Sending message: " + buffer);
+  DebugPrintln("Sending message: " + buffer);
 
-  bool published = client.publish(topic, (const uint8_t*) buffer.c_str(), buffer.length(), false);
-  Serial.print("SEND STATE:  ");
-  Serial.println(published);
+  bool published = client.publish(topic, (const uint8_t *)buffer.c_str(), buffer.length(), false);
+  DebugPrint("SEND STATE:  ");
+  DebugPrintln(published);
 }

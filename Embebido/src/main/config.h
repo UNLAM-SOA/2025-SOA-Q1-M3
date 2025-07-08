@@ -1,5 +1,6 @@
 #include "Drivers/SD_Driver.h"
 #include "timer_schedule.h"
+#include "debug.h"
 
 #define PATH_SCHEDULE "/schedule.csv"
 
@@ -52,7 +53,7 @@ void readCsvConfig()
  String content = readSD(PATH_SCHEDULE);
  if (content.length() == 0)
  {
-  Serial.println("Error: file empty or file doesn't exist");
+  DebugPrintln("Error: file empty or file doesn't exist");
   return;
  }
 
@@ -102,9 +103,9 @@ void readCsvConfig()
   index++;
  }
 
- Serial.print("Horario cargado: ");
- Serial.print(index);
- Serial.println(" registros");
+ DebugPrint("Horario cargado: ");
+ DebugPrint(index);
+ DebugPrintln(" registros");
 }
 
 void saveScheduleToSD()
@@ -120,7 +121,7 @@ void saveScheduleToSD()
  }
 
  overwriteFileToSD(PATH_SCHEDULE, content);
- Serial.println("Horario guardado en SD");
+ DebugPrintln("Horario guardado en SD");
 }
 
 void printSchedule()
@@ -140,13 +141,13 @@ void printSchedule()
 void printCSVSchedule()
 {
  String content = readSD(PATH_SCHEDULE);
- Serial.println("\nContenido de schedule.csv:");
- Serial.println("--------------------------");
+ DebugPrintln("\nContenido de schedule.csv:");
+ DebugPrintln("--------------------------");
 
  // Leer y mostrar el archivo línea por línea
- Serial.println(content);
+ DebugPrintln(content);
 
  file.close();
- Serial.println("--------------------------");
- Serial.println("Fin del archivo\n");
+ DebugPrintln("--------------------------");
+ DebugPrintln("Fin del archivo\n");
 }

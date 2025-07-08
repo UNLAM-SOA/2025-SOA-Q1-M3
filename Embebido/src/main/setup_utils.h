@@ -6,6 +6,7 @@
 #include "fisical.h"
 #include "state_machine.h"
 #include "esp_timer.h"
+#include "debug.h"
 
 #define HOUR_TO_SECONDS 3600
 #define GMT_DIFFERENCE -4
@@ -30,36 +31,36 @@ struct tm timeinfo;
 
 void setupWifi()
 {
- Serial.println("Connecting to WiFi...");
+ DebugPrintln("Connecting to WiFi...");
  WiFi.begin(ssid, password);
  while (WiFi.status() != WL_CONNECTED)
  {
   delay(TIMEOUT_SETUP);
-  Serial.println("Connecting to WiFi...");
+  DebugPrintln("Connecting to WiFi...");
  }
- Serial.println("Connected to WiFi!");
+ DebugPrintln("Connected to WiFi!");
 }
 
 void setupTime()
 {
  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
- Serial.println("Time synchronized with NTP server.");
+ DebugPrintln("Time synchronized with NTP server.");
  while (!getLocalTime(&timeinfo, TIMEOUT_SETUP))
  {
-  Serial.println("Failed to obtain time");
+  DebugPrintln("Failed to obtain time");
   delay(TIMEOUT_SETUP);
  }
- Serial.println("Time succesfully setted");
+ DebugPrintln("Time succesfully setted");
 }
 
 void printLocalTime()
 {
- Serial.print("Current time: ");
- Serial.print(timeinfo.tm_hour);
- Serial.print(":");
- Serial.print(timeinfo.tm_min);
- Serial.print(":");
- Serial.println(timeinfo.tm_sec);
+ DebugPrint("Current time: ");
+ DebugPrint(timeinfo.tm_hour);
+ DebugPrint(":");
+ DebugPrint(timeinfo.tm_min);
+ DebugPrint(":");
+ DebugPrintln(timeinfo.tm_sec);
 }
 
 void createNewScheduledTimer()
@@ -69,7 +70,7 @@ void createNewScheduledTimer()
  searchNextSchedule(&timeinfo);                                                                  // Set nextPeriod to the next schedule based on the current time
  const int timeUntilNextScheduleValue = timeUntilNextSchedule(&timeinfo, &schedule[nextPeriod]); // Calculate time until next schedule
 
- Serial.println(String(timeUntilNextScheduleValue) + " ms until next schedule");
+ DebugPrintln(String(timeUntilNextScheduleValue) + " ms until next schedule");
  xTimer = xTimerCreate("ScheduleTime", pdMS_TO_TICKS(timeUntilNextScheduleValue), pdFALSE, NULL, handleTimerCallback);
  if (xTimer != NULL)
  {
@@ -77,7 +78,7 @@ void createNewScheduledTimer()
  }
  else
  {
-  Serial.println("Failed to create timer.");
+  DebugPrintln("Failed to create timer.");
  }
 }
 

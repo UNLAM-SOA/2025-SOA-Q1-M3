@@ -14,12 +14,12 @@ const int colorR = 255;
 const int colorG = 0;
 const int colorB = 0;
 
-rgb_lcd lcd; // Objeto LCD
+rgb_lcd lcd;
 
 // Inicializa el display LCD
 void setupLCD()
 {
- Wire.begin(PIN_SDA, PIN_SCL); // Inicializa I2C con pines específicos
+ Wire.begin(PIN_SDA, PIN_SCL);
  lcd.begin(LCD_COLUMNS, LCD_ROWS);
  lcd.setRGB(colorR, colorG, colorB);
 
@@ -84,41 +84,6 @@ void writeLCD(const char *message)
    lcd.print(buffer);
   }
 
-  xSemaphoreGive(lcdMutex);
- }
-}
-
-// Mueve el cursor a posición específica (0-based) de forma segura
-void setCursorLCD(uint8_t col, uint8_t row)
-{
- if (xSemaphoreTake(lcdMutex, pdMS_TO_TICKS(100)))
- {
-  if (col >= LCD_COLUMNS)
-   col = LCD_COLUMNS - 1;
-  if (row >= LCD_ROWS)
-   row = LCD_ROWS - 1;
-  lcd.setCursor(col, row);
-  xSemaphoreGive(lcdMutex);
- }
-}
-
-// Escribe en posición específica de forma segura
-void writeAtPosition(uint8_t col, uint8_t row, const char *text)
-{
- if (xSemaphoreTake(lcdMutex, pdMS_TO_TICKS(100)))
- {
-  setCursorLCD(col, row);
-  lcd.print(text);
-  xSemaphoreGive(lcdMutex);
- }
-}
-
-// Cambia el color del backlight RGB
-void setLCDColor(uint8_t r, uint8_t g, uint8_t b)
-{
- if (xSemaphoreTake(lcdMutex, pdMS_TO_TICKS(100)))
- {
-  lcd.setRGB(r, g, b);
   xSemaphoreGive(lcdMutex);
  }
 }
